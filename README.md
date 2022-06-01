@@ -1,5 +1,10 @@
 # Wicom_woojoo
 
 alldata_new.csv >> Raw data 
-(["col_date","temperature1","temperature2","temperature3","humidity1","humidity2","waterlevel","leakage","fire","isclosed"],
-["2022-03-30 16:16:03.835761",23.9,24.8,24.3,35.7,34.0,1036.0,0,0,0])
+([col_date,temperature1,temperature2,temperature3,humidity1,humidity2,waterlevel,leakage,fire,isclosed])
+
+Woojoo_data_X.csv >> Isolation forest result for each variable
+([col_date,humidity1,anomaly_hum1])
+
+Woojoo_alldata.csv >> Data & Isolation forest result
+([col_date,temperature1,temperature2,temperature3,humidity1,humidity2,waterlevel,leakage,fire,isclosed,anomaly_temp1,anomaly_temp2,anomaly_temp3,anomaly_hum1,anomaly_hum2,anomaly_waterlevel,anomaly_waterleak,anomaly_fire,anomaly_door]
