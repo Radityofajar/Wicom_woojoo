@@ -275,7 +275,8 @@ if __name__ == '__main__':
     arr_waterleak = np.array([[]])
     arr_door = np.array([[]])
     arr_fire = np.array([[]])
+    postproc_name = 'PostProcessExample3'
     url = "https://town.coxlab.kr/"
     username = "rfpamungkas23@gmail.com"
     password = "c34859e08fa526f642881820d5108ccd475d5b58efbc8b4a5b89fd93366fe1d1"
-    postprocess(url,'PostProcessExample3',post_process, username, password)
+    postprocess(url,postproc_name,post_process, username, password)
