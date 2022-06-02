@@ -17,11 +17,11 @@ df_waterleak = np.array([data_frame['leakage']]).T
 df_fire = np.array([data_frame['fire']]).T
 df_door = np.array([data_frame['isclosed']]).T
 
-model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-model_temp2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-model_temp3 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
+model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+model_temp2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+model_temp3 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
 model_waterlevel = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
 model_waterleak = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
 model_fire = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
