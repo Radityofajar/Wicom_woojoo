@@ -65,9 +65,7 @@ def train(): # for retraining model & overwriting model
     sc_temp2 = StandardScaler().fit_transform(arr_temp2)
     sc_temp3 = StandardScaler().fit_transform(arr_temp3)
     sc_waterlevel = StandardScaler().fit_transform(arr_waterlevel)
-    sc_waterleak = StandardScaler().fit_transform(arr_waterleak)
-    sc_fire = StandardScaler().fit_transform(arr_fire)
-    sc_door = StandardScaler().fit_transform(arr_door)
+
 
     #model training
     model_hum1.fit(arr_hum1_norm)
@@ -87,9 +85,6 @@ def train(): # for retraining model & overwriting model
     dump(model_temp2, 'model\MCD_model_temp2.joblib')
     dump(model_temp3, 'model\MCD_model_temp3.joblib')
     dump(model_waterlevel, 'model\MCD_model_waterlevel.joblib')
-    dump(model_waterleak, 'model\MCD_model_waterleak.joblib')
-    dump(model_fire, 'model\MCD_model_fire.joblib')
-    dump(model_door, 'model\MCD_model_door.joblib')
 
     dump(sc_hum1, 'SC\std_scaler_hum1.bin')
     dump(sc_hum2, 'SC\std_scaler_hum2.bin')
@@ -97,9 +92,7 @@ def train(): # for retraining model & overwriting model
     dump(sc_temp2, 'SC\std_scaler_temp2.bin')
     dump(sc_temp3, 'SC\std_scaler_temp3.bin')
     dump(sc_waterlevel, 'SC\std_scaler_waterlevel.bin')
-    dump(sc_waterleak, 'SC\std_scaler_waterleak.bin')
-    dump(sc_fire, 'SC\std_scaler_fire.bin')
-    dump(sc_door, 'SC\std_scaler_door.bin')
+
     print('Retraining is done')
 
 def post_process(message):
@@ -136,9 +129,6 @@ def post_process(message):
         model_temp2 = load("model\MCD_model_temp2.joblib")
         model_temp3 = load("model\MCD_model_temp3.joblib")
         model_waterlevel = load("model\MCD_model_waterlevel.joblib")
-        model_waterleak = load("model\MCD_model_waterleak.joblib")
-        model_fire = load("model\MCD_model_fire.joblib")
-        model_door = load("model\MCD_model_door.joblib")
 
         sc_hum1 = load('SC\std_scaler_hum1.bin')
         sc_hum2 = load('SC\std_scaler_hum2.bin')
@@ -146,9 +136,7 @@ def post_process(message):
         sc_temp2 = load('SC\std_scaler_temp2.bin')
         sc_temp3 = load('SC\std_scaler_temp3.bin')
         sc_waterlevel = load('SC\std_scaler_waterlevel.bin')
-        sc_waterleak = load('SC\std_scaler_waterleak.bin')
-        sc_fire = load('SC\std_scaler_fire.bin')
-        sc_door = load('SC\std_scaler_door.bin')
+
         counter += 1 
 
     elif counter<=train_number: 
@@ -200,9 +188,7 @@ def post_process(message):
     temp2_norm = sc_temp2.transform(temp2)
     temp3_norm = sc_temp3.transform(temp3)
     water_level_norm = sc_waterlevel.transform(water_level)
-    water_leak_norm = sc_waterleak.transform(water_leak)
-    fire_norm = sc_fire.transform(fire)
-    door_norm = sc_door.transform(door)
+
 
     #input data to the window
     arr_hum1 = np.append(arr_hum1,hum1)
@@ -221,9 +207,7 @@ def post_process(message):
     arr_temp2_norm = np.append(arr_temp2_norm,temp2_norm)
     arr_temp3_norm = np.append(arr_temp3_norm,temp3_norm)
     arr_waterlevel_norm = np.append(arr_waterlevel_norm,water_level_norm)
-    arr_waterleak_norm = np.append(arr_waterleak_norm,water_leak_norm)
-    arr_fire_norm = np.append(arr_fire_norm,fire_norm)
-    arr_door_norm = np.append(arr_door_norm,door_norm)
+
 
     #preprocess the data for anomaly detection
     newhum1 = hum1_norm.reshape(1,-1)
@@ -232,9 +216,7 @@ def post_process(message):
     newtemp2 = temp2_norm.reshape(1,-1)
     newtemp3 = temp3_norm.reshape(1,-1)
     newwater_level = water_level_norm.reshape(1,-1)
-    newwater_leak = water_leak_norm.reshape(1,-1)
-    newfire = fire_norm.reshape(1,-1)
-    newdoor = door_norm.reshape(1,-1)
+
     
     #anomaly detection / Isolation Forest Prediction
     anomaly_score_hum1 = model_hum1.decision_function(newhum1)
@@ -243,9 +225,7 @@ def post_process(message):
     anomaly_score_temp2 = model_temp2.decision_function(newtemp2)
     anomaly_score_temp3 = model_temp3.decision_function(newtemp3)
     anomaly_score_waterlevel = model_waterlevel.decision_function(newwater_level)
-    anomaly_score_waterleak = model_waterleak.decision_function(newwater_leak)
-    anomaly_score_fire = model_fire.decision_function(newfire)
-    anomaly_score_door = model_door.decision_function(newdoor)
+
 
     anomalies_hum1 = model_hum1.predict(newhum1)
     anomalies_hum2 = model_hum2.predict(newhum2)
@@ -253,9 +233,7 @@ def post_process(message):
     anomalies_temp2 = model_temp2.predict(newtemp2)
     anomalies_temp3 = model_temp3.predict(newtemp3)
     anomalies_waterlevel = model_waterlevel.predict(newwater_level)
-    anomalies_waterleak = model_waterleak.predict(newwater_leak)
-    anomalies_fire = model_fire.predict(newfire)
-    anomalies_door = model_door.predict(newdoor)
+
 
     #clustering between normal & abnormal
     if anomalies_hum1 == 0 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
@@ -288,18 +266,18 @@ def post_process(message):
     else:
         status_waterlevel = 'abnormal'
 
-    if anomalies_waterleak == 0 and float(water_leak[0]) == 0:#thresholding for binary sensor
+    if float(water_leak[0]) == 0:#thresholding for binary sensor
         status_waterleak = 'normal'
     else:
         status_waterleak = 'abnormal/isflood'
     
-    if anomalies_fire == 0 and float(fire[0]) == 0: #thresholding for binary sensor
+    if float(fire[0]) == 0: #thresholding for binary sensor
         
         status_fire = 'normal'
     else:
         status_fire = 'abnormal/fire'
 
-    if anomalies_door == 0 and float(door[0]) == 0: #thresholding for binary sensor
+    if float(door[0]) == 0: #thresholding for binary sensor
         status_door = 'normal'
     else:
         status_door = 'abnormal/open'
@@ -333,9 +311,6 @@ def post_process(message):
     changedata['anomaly_score_hum1'] = round(float(anomaly_score_hum1[0]),2)
     changedata['anomaly_score_hum2'] = round(float(anomaly_score_hum2[0]),2)
     changedata['anomaly_score_waterlevel'] = round(float(anomaly_score_waterlevel[0]),2)
-    changedata['anomaly_score_waterleak'] = round(float(anomaly_score_waterleak[0]),2)
-    changedata['anomaly_score_door'] = round(float(anomaly_score_door[0]),2)
-    changedata['anomaly_score_fire'] = round(float(anomaly_score_fire[0]),2)
  
     message['data'] = changedata
     print(changedata)
@@ -361,7 +336,7 @@ if __name__ == '__main__':
     arr_waterleak_norm = np.array([[]])
     arr_door_norm = np.array([[]])
     arr_fire_norm = np.array([[]])
-    
+
     postproc_name = 'PostProcessExample3'
     url = "https://town.coxlab.kr/"
     username = "rfpamungkas23@gmail.com"
