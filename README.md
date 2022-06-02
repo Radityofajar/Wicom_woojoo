@@ -5,7 +5,7 @@
 
 
 ## _Woojoo_data_X.csv_ >> Isolation forest result for each variable
-([col_date,humidity1,anomaly_hum1])
+([col_date,raw_data,anomaly_status])
 
 for **anomaly = 1: is normal and -1: is abnormal**
 
