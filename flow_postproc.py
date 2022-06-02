@@ -12,11 +12,12 @@ counter = 0
 upper_thresh = 10
 lowe_thresh = 0
 
-#sliding window setting
+#Sliding window setting (depends on the data collection cycle)
+#in this case, data collection cyle is 1 minute
 batch_size = 60 # 60 = 1 hour
 train_number = 1440 # 1440 = 1 day
 
-def train(): # for retraining model & overwriting model
+def train(): #For retraining model & overwriting model
     global arr_sensor
 
     #model initialization
