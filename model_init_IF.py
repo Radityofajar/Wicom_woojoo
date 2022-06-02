@@ -3,13 +3,11 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 import time
-from sklearn.preprocessing import StandardScaler
+data_frame = pd.read_csv("alldata.csv")
 
-#Read dataset
-data_frame = pd.read_csv("alldata_new.csv")
-
-#preprocess the data
 df_hum1 = np.array([data_frame['humidity1']]).T
+
+
 df_hum2 = np.array([data_frame['humidity2']]).T
 df_temp1 = np.array([data_frame['temperature1']]).T
 df_temp2 = np.array([data_frame['temperature2']]).T
@@ -19,17 +17,6 @@ df_waterleak = np.array([data_frame['leakage']]).T
 df_fire = np.array([data_frame['fire']]).T
 df_door = np.array([data_frame['isclosed']]).T
 
-df_hum1 = StandardScaler().fit_transform(df_hum1)
-df_hum2 = StandardScaler().fit_transform(df_hum2)
-df_temp1 = StandardScaler().fit_transform(df_temp1)
-df_temp2 = StandardScaler().fit_transform(df_temp2)
-df_temp3 = StandardScaler().fit_transform(df_temp3)
-df_waterlevel = StandardScaler().fit_transform(df_waterlevel)
-df_waterleak = StandardScaler().fit_transform(df_waterleak)
-df_fire = StandardScaler().fit_transform(df_fire)
-df_door = StandardScaler().fit_transform(df_door)
-
-#anomaly detection model
 model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
 model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
 model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
@@ -40,7 +27,6 @@ model_waterleak = IsolationForest(n_estimators=100, max_samples=500, random_stat
 model_fire = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
 model_door = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
 
-#Training
 t0 = time.time()
 model_hum1.fit(df_hum1)
 model_hum2.fit(df_hum2)
@@ -51,12 +37,9 @@ model_waterlevel.fit(df_waterlevel)
 model_waterleak.fit(df_waterleak)
 model_fire.fit(df_fire)
 model_door.fit(df_door)
-
-#Total training time
 t1 = time.time()
 print(t1-t0)
 
-#save model
 dump(model_hum1, 'model\model_hum1.joblib')
 dump(model_hum2, 'model\model_hum2.joblib')
 dump(model_temp1, 'model\model_temp1.joblib')
