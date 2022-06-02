@@ -26,7 +26,8 @@ Parameter: batch_size and train_number
 ![sliding_window](/docs/sliding_window.png)
 
 ### postproc_HBOS.py
-Histogram- based outlier detection (HBOS) is an efficient unsupervised method. It assumes the feature independence and calculates the degree of outlyingness by building histograms.
+Histogram- based outlier detection (HBOS) is an efficient unsupervised method. It assumes the feature independence and calculates the degree of outlyingness by building histograms. (model_init_2.py)
 
 ### postproc_MCD.py
-Outlier Detection with Minimum Covariance Determinant (MCD)
+Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be applied on Gaussian-distributed data, but could still be relevant on data drawn from a unimodal, symmetric distribution.
+(model_init_2.py)
