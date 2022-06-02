@@ -34,11 +34,11 @@ def train(): # for retraining model & overwriting model
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
 
-    model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_temp2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_temp3 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
+    model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+    model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+    model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+    model_temp2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+    model_temp3 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
     model_waterlevel = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     model_waterleak = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     model_fire = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
