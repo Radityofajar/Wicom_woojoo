@@ -1,7 +1,7 @@
 #import all the library needed
 import numpy as np
-from pyiotown_wicom import postprocess
-#import pyiotown.post
+#from pyiotown_wicom import postprocess
+import pyiotown.post
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
@@ -288,5 +288,5 @@ if __name__ == '__main__':
     url = "https://town.coxlab.kr/"
     username = "rfpamungkas23@gmail.com"
     password = "c34859e08fa526f642881820d5108ccd475d5b58efbc8b4a5b89fd93366fe1d1"
-    postprocess(url,postproc_name,post_process, username, password)
-    #pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
+    #postprocess(url,postproc_name,post_process, username, password)
+    pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
