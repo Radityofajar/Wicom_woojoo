@@ -1,10 +1,12 @@
 #import all the library needed
 import numpy as np
-#from pyiotown_wicom import postprocess
-import pyiotown.post
+from pyiotown_wicom import postprocess
+#import pyiotown.post
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
+import warnings
+warnings.filterwarnings("ignore")
 
 
 counter = 0
@@ -34,6 +36,8 @@ def train(): # for retraining model & overwriting model
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
     
+
+    
     #model initialization
     model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
     model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
@@ -46,26 +50,15 @@ def train(): # for retraining model & overwriting model
     model_door = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     
     #data preprocess
-    arr_hum1_scale = StandardScaler().fit_transform(arr_hum1.reshape(-1,1))
-    arr_hum2_scale = StandardScaler().fit_transform(arr_hum2.reshape(-1,1))
-    arr_temp1_scale = StandardScaler().fit_transform(arr_temp1.reshape(-1,1))
-    arr_temp2_scale = StandardScaler().fit_transform(arr_temp2.reshape(-1,1))
-    arr_temp3_scale = StandardScaler().fit_transform(arr_temp3.reshape(-1,1))
-    arr_waterlevel_scale = StandardScaler().fit_transform(arr_waterlevel.reshape(-1,1))
-    arr_waterleak_scale = StandardScaler().fit_transform(arr_waterleak.reshape(-1,1))
-    arr_fire_scale = StandardScaler().fit_transform(arr_fire.reshape(-1,1))
-    arr_door_scale = StandardScaler().fit_transform(arr_door.reshape(-1,1))
-
-    #model training
-    model_hum1.fit(arr_hum1_scale)
-    model_hum2.fit(arr_hum2_scale)
-    model_temp1.fit(arr_temp1_scale)
-    model_temp2.fit(arr_temp2_scale)
-    model_temp3.fit(arr_temp3_scale)
-    model_waterlevel.fit(arr_waterlevel_scale)
-    model_waterleak.fit(arr_waterleak_scale)
-    model_fire.fit(arr_fire_scale)
-    model_door.fit(arr_door_scale)
+    arr_hum1 = arr_hum1.reshape(-1,1)
+    arr_hum2 = arr_hum2.reshape(-1,1)
+    arr_temp1 = arr_temp1.reshape(-1,1)
+    arr_temp2 = arr_temp2.reshape(-1,1)
+    arr_temp3 = arr_temp3.reshape(-1,1)
+    arr_waterlevel = arr_waterlevel.reshape(-1,1)
+    arr_waterleak = arr_waterleak.reshape(-1,1)
+    arr_fire = arr_fire.reshape(-1,1)
+    arr_door = arr_door.reshape(-1,1)
 
     #model training
     model_hum1.fit(arr_hum1)
@@ -304,5 +297,5 @@ if __name__ == '__main__':
     url = "https://town.coxlab.kr/"
     username = "rfpamungkas23@gmail.com"
     password = "c34859e08fa526f642881820d5108ccd475d5b58efbc8b4a5b89fd93366fe1d1"
-    #postprocess(url,postproc_name,post_process, username, password)
-    pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
+    postprocess(url,postproc_name,post_process, username, password)
+    #pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
