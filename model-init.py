@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 import time
+from sklearn.preprocessing import StandardScaler
 
 #Read dataset
 data_frame = pd.read_csv("alldata_new.csv")
@@ -17,6 +18,16 @@ df_waterlevel = np.array([data_frame['waterlevel']]).T
 df_waterleak = np.array([data_frame['leakage']]).T
 df_fire = np.array([data_frame['fire']]).T
 df_door = np.array([data_frame['isclosed']]).T
+
+df_hum1 = StandardScaler().fit_transform(df_hum1)
+df_hum2 = StandardScaler().fit_transform(df_hum2)
+df_temp1 = StandardScaler().fit_transform(df_temp1)
+df_temp2 = StandardScaler().fit_transform(df_temp2)
+df_temp3 = StandardScaler().fit_transform(df_temp3)
+df_waterlevel = StandardScaler().fit_transform(df_waterlevel)
+df_waterleak = StandardScaler().fit_transform(df_waterleak)
+df_fire = StandardScaler().fit_transform(df_fire)
+df_door = StandardScaler().fit_transform(df_door)
 
 #anomaly detection model
 model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
