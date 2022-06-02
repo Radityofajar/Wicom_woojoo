@@ -1,10 +1,14 @@
+#import all the library needed
 import numpy as np
 from pyiotown_wicom import postprocess
+#import pyiotown.post
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
 
+
 counter = 0
+
 #thresholding value
 threshold_waterlevel1 = 300
 threshold_waterlevel2 = 3500
@@ -98,7 +102,7 @@ def post_process(message):
     
     print(counter)
 
-    if counter == 0:
+    if counter == 0: #Using Initial model for the mode 1 & 2
         print("mode1")
         model_hum1 = load("model\model_hum1.joblib")
         model_hum2 = load("model\model_hum2.joblib")
@@ -112,10 +116,12 @@ def post_process(message):
         counter +=1  
 
     elif counter<=train_number: 
+        #keep using initial model until the data stored in array is enough
         print("mode2")
         counter +=1   
 
-    elif counter == (train_number+1) :  
+    elif counter == (train_number+1) : 
+        #retrain the  model
         print("mode3")
         print(thread.is_alive())
         if thread.is_alive():
@@ -127,6 +133,7 @@ def post_process(message):
         thread.join()
 
     elif counter<= (train_number + 1 + batch_size): 
+        #sliding window method
         print("mode4")
         counter +=1
     
@@ -153,7 +160,7 @@ def post_process(message):
     
     changedata = {}
 
-    #anomaly detection / Isof prediction
+    #preprocess the data for anomaly detection
     newhum1 = hum1.reshape(1,-1)
     newhum2 = hum2.reshape(1,-1)
     newtemp1 = temp1.reshape(1,-1)
@@ -164,6 +171,7 @@ def post_process(message):
     newfire = fire.reshape(1,-1)
     newdoor = door.reshape(1,-1)
     
+    #anomaly detection / Isof prediction
     anomaly_score_hum1 = model_hum1.decision_function(newhum1)
     anomaly_score_hum2 = model_hum2.decision_function(newhum2)
     anomaly_score_temp1 = model_temp1.decision_function(newtemp1)
@@ -184,6 +192,7 @@ def post_process(message):
     anomalies_fire = model_fire.predict(newfire)
     anomalies_door = model_door.predict(newdoor)
 
+    #clustering between normal & abnormal
     if anomalies_hum1 > 0 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
         status_hum1 = 'normal'
     else:
@@ -214,22 +223,23 @@ def post_process(message):
     else:
         status_waterlevel = 'abnormal'
 
-    if anomalies_waterleak > 0 and float(water_leak[0]) == 0:#thresholding
+    if anomalies_waterleak > 0 and float(water_leak[0]) == 0:#thresholding for binary sensor
         status_waterleak = 'normal'
     else:
-        status_waterleak = 'abnormal'
+        status_waterleak = 'abnormal/isflood'
     
-    if anomalies_fire > 0 and float(fire[0]) == 0: #thresholding
+    if anomalies_fire > 0 and float(fire[0]) == 0: #thresholding for binary sensor
         
         status_fire = 'normal'
     else:
-        status_fire = 'abnormal'
+        status_fire = 'abnormal/fire'
 
-    if anomalies_door > 0 and float(door[0]) == 0: #thresholding
+    if anomalies_door > 0 and float(door[0]) == 0: #thresholding for binary sensor
         status_door = 'normal'
     else:
-        status_door = 'abnormal'
+        status_door = 'abnormal/open'
 
+    #store the data to send it back to IoT.own
     changedata['status_temp1'] = status_temp1
     changedata['status_temp2'] = status_temp2
     changedata['status_temp3'] = status_temp3
@@ -250,7 +260,6 @@ def post_process(message):
     changedata['door'] = float(door[0])
     changedata['fire'] = float(fire[0])
     
-
     changedata['anomaly_score_temp1'] = round(float(anomaly_score_temp1[0]),2)
     changedata['anomaly_score_temp2'] = round(float(anomaly_score_temp2[0]),2)
     changedata['anomaly_score_temp3'] = round(float(anomaly_score_temp3[0]),2)
@@ -280,3 +289,4 @@ if __name__ == '__main__':
     username = "rfpamungkas23@gmail.com"
     password = "c34859e08fa526f642881820d5108ccd475d5b58efbc8b4a5b89fd93366fe1d1"
     postprocess(url,postproc_name,post_process, username, password)
+    #pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
