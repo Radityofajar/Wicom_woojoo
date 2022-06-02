@@ -46,15 +46,26 @@ def train(): # for retraining model & overwriting model
     model_door = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     
     #data preprocess
-    arr_hum1 = arr_hum1.reshape(-1,1)
-    arr_hum2 = arr_hum2.reshape(-1,1)
-    arr_temp1 = arr_temp1.reshape(-1,1)
-    arr_temp2 = arr_temp2.reshape(-1,1)
-    arr_temp3 = arr_temp3.reshape(-1,1)
-    arr_waterlevel = arr_waterlevel.reshape(-1,1)
-    arr_waterleak = arr_waterleak.reshape(-1,1)
-    arr_fire = arr_fire.reshape(-1,1)
-    arr_door = arr_door.reshape(-1,1)
+    arr_hum1_scale = StandardScaler().fit_transform(arr_hum1.reshape(-1,1))
+    arr_hum2_scale = StandardScaler().fit_transform(arr_hum2.reshape(-1,1))
+    arr_temp1_scale = StandardScaler().fit_transform(arr_temp1.reshape(-1,1))
+    arr_temp2_scale = StandardScaler().fit_transform(arr_temp2.reshape(-1,1))
+    arr_temp3_scale = StandardScaler().fit_transform(arr_temp3.reshape(-1,1))
+    arr_waterlevel_scale = StandardScaler().fit_transform(arr_waterlevel.reshape(-1,1))
+    arr_waterleak_scale = StandardScaler().fit_transform(arr_waterleak.reshape(-1,1))
+    arr_fire_scale = StandardScaler().fit_transform(arr_fire.reshape(-1,1))
+    arr_door_scale = StandardScaler().fit_transform(arr_door.reshape(-1,1))
+
+    #model training
+    model_hum1.fit(arr_hum1_scale)
+    model_hum2.fit(arr_hum2_scale)
+    model_temp1.fit(arr_temp1_scale)
+    model_temp2.fit(arr_temp2_scale)
+    model_temp3.fit(arr_temp3_scale)
+    model_waterlevel.fit(arr_waterlevel_scale)
+    model_waterleak.fit(arr_waterleak_scale)
+    model_fire.fit(arr_fire_scale)
+    model_door.fit(arr_door_scale)
 
     #model training
     model_hum1.fit(arr_hum1)
