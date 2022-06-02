@@ -33,7 +33,8 @@ def train(): # for retraining model & overwriting model
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
-
+    
+    #model initialization
     model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
     model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
     model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
@@ -44,6 +45,7 @@ def train(): # for retraining model & overwriting model
     model_fire = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     model_door = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
     
+    #data preprocess
     arr_hum1 = arr_hum1.reshape(-1,1)
     arr_hum2 = arr_hum2.reshape(-1,1)
     arr_temp1 = arr_temp1.reshape(-1,1)
@@ -54,6 +56,7 @@ def train(): # for retraining model & overwriting model
     arr_fire = arr_fire.reshape(-1,1)
     arr_door = arr_door.reshape(-1,1)
 
+    #model training
     model_hum1.fit(arr_hum1)
     model_hum2.fit(arr_hum2)
     model_temp1.fit(arr_temp1)
@@ -64,6 +67,7 @@ def train(): # for retraining model & overwriting model
     model_fire.fit(arr_fire)
     model_door.fit(arr_door)
 
+    #save/overwrite model
     dump(model_hum1, 'model\model_hum1.joblib')
     dump(model_hum2, 'model\model_hum2.joblib')
     dump(model_temp1, 'model\model_temp1.joblib')
@@ -137,17 +141,18 @@ def post_process(message):
         print("mode4")
         counter +=1
     
-    else: #optimize the array size
-        counter = 1441
-        arr_hum1 = arr_hum1[-1440:]
-        arr_hum2 = arr_hum2[-1440:]
-        arr_temp1 = arr_temp1[-1440:]
-        arr_temp3 = arr_temp3[-1440:]
-        arr_waterlevel = arr_waterlevel[-1440:]
-        arr_waterleak = arr_waterleak[-1440:]
-        arr_fire = arr_fire[-1440:]
-        arr_door = arr_door[-1440:]
+    else: #optimize the array size of the sliding window
+        counter = (train_number+1)
+        arr_hum1 = arr_hum1[-train_number:]
+        arr_hum2 = arr_hum2[-train_number:]
+        arr_temp1 = arr_temp1[-train_number:]
+        arr_temp3 = arr_temp3[-train_number:]
+        arr_waterlevel = arr_waterlevel[-train_number:]
+        arr_waterleak = arr_waterleak[-train_number:]
+        arr_fire = arr_fire[-train_number:]
+        arr_door = arr_door[-train_number:]
 
+    #input data to the window
     arr_hum1 = np.append(arr_hum1,hum1)
     arr_hum2 = np.append(arr_hum2,hum2)
     arr_temp1 = np.append(arr_temp1,temp1)
@@ -157,8 +162,6 @@ def post_process(message):
     arr_waterleak = np.append(arr_waterleak,water_leak)
     arr_fire = np.append(arr_fire,fire)
     arr_door = np.append(arr_door,door)
-    
-    changedata = {}
 
     #preprocess the data for anomaly detection
     newhum1 = hum1.reshape(1,-1)
@@ -171,7 +174,7 @@ def post_process(message):
     newfire = fire.reshape(1,-1)
     newdoor = door.reshape(1,-1)
     
-    #anomaly detection / Isof prediction
+    #anomaly detection / Isolation Forest Prediction
     anomaly_score_hum1 = model_hum1.decision_function(newhum1)
     anomaly_score_hum2 = model_hum2.decision_function(newhum2)
     anomaly_score_temp1 = model_temp1.decision_function(newtemp1)
@@ -239,7 +242,9 @@ def post_process(message):
     else:
         status_door = 'abnormal/open'
 
-    #store the data to send it back to IoT.own
+    changedata = {}
+
+    #store the data in order to send it back to IoT.own
     changedata['status_temp1'] = status_temp1
     changedata['status_temp2'] = status_temp2
     changedata['status_temp3'] = status_temp3
