@@ -18,6 +18,7 @@ This is the main program to run the anomaly detection using postprocess features
     -> sliding window parameter: to keep the uniqueness and rarity.
     
     -> model initialization parameter: to use what kind of model needed and also how you want to retrain it.
+  Step 3: Run the postproc.py program
 
 #### Sliding window
 Parameter: batch_size and train_number
