@@ -8,6 +8,7 @@ Contains initial models (temperature, humidity, waterlevel, waterleak, door, fir
 
 ### postproc.py
 This is the main program to run the anomaly detection using postprocess features by IoT.own Coxlab.
+(nb: flow_postproc.py is similar with postproc.py but more readable and easily modify)
 
   Step 1: Prepare the initial model using model_init.py
   
