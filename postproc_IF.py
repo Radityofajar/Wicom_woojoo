@@ -28,7 +28,6 @@ threshold_temp3_upper = 40
 batch_size = 60 # 60 = 1 hour
 train_number = 1440 # 1440 = 1 day
 
-
 def train(): # for retraining model & overwriting model
     global arr_hum1, arr_hum2
     global arr_temp1, arr_temp2, arr_temp3
@@ -99,7 +98,6 @@ def post_process(message):
     
     print(message)
     
-    
     temp1 = np.array([message['data']['temp1']]).T
     temp2 = np.array([message['data']['temp2']]).T
     temp3 = np.array([message['data']['temp3']]).T
@@ -154,6 +152,7 @@ def post_process(message):
         model_waterleak = load("model\model_waterleak.joblib")
         model_fire = load("model\model_fire.joblib")
         model_door = load("model\model_door.joblib")
+        counter += 1
 
     elif counter<= (train_number + batch_size): 
         #sliding window method
