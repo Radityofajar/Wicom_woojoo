@@ -155,13 +155,30 @@ def post_process(message):
         counter += 1
         thread.join()
 
+    elif counter == (train_number+2):
+        print("mode4:load retrain model")
+        model_hum1 = load("model\HBOS_model_hum1.joblib")
+        model_hum2 = load("model\HBOS_model_hum2.joblib")
+        model_temp1 = load("model\HBOS_model_temp1.joblib")
+        model_temp2 = load("model\HBOS_model_temp2.joblib")
+        model_temp3 = load("model\HBOS_model_temp3.joblib")
+        model_waterlevel = load("model\HBOS_model_waterlevel.joblib")
+
+        sc_hum1 = load('SC\std_scaler_hum1.bin')
+        sc_hum2 = load('SC\std_scaler_hum2.bin')
+        sc_temp1 = load('SC\std_scaler_temp1.bin')
+        sc_temp2 = load('SC\std_scaler_temp2.bin')
+        sc_temp3 = load('SC\std_scaler_temp3.bin')
+        sc_waterlevel = load('SC\std_scaler_waterlevel.bin')
+
     elif counter<= (train_number + batch_size): 
         #sliding window method
-        print("mode4")
+        print("mode5")
         counter +=1
     
     else: #optimize the array size of the sliding window
         counter = (train_number+1)
+        print("mode6:optimize array size")
         arr_hum1 = arr_hum1[-train_number:]
         arr_hum2 = arr_hum2[-train_number:]
         arr_temp1 = arr_temp1[-train_number:]
