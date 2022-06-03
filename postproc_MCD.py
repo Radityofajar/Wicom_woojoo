@@ -168,6 +168,7 @@ def post_process(message):
         sc_temp2 = load('SC\std_scaler_temp2.bin')
         sc_temp3 = load('SC\std_scaler_temp3.bin')
         sc_waterlevel = load('SC\std_scaler_waterlevel.bin')
+        counter += 1
 
     elif counter<= (train_number + batch_size): 
         #sliding window method
