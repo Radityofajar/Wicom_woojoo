@@ -9,7 +9,7 @@ import threading
 import warnings
 warnings.filterwarnings("ignore")
 
-counter = 0
+counter = 1
 
 #thresholding value
 threshold_waterlevel1 = 300
