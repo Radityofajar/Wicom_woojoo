@@ -33,8 +33,8 @@ train_number = 1440 # 1440 = 1 day
 def train(): # for retraining model & overwriting model
     global arr_hum1, arr_hum2, arr_hum1_norm, arr_hum2_norm
     global arr_temp1, arr_temp2, arr_temp3, arr_temp1_norm, arr_temp2_norm, arr_temp3_norm
-    global arr_waterlevel, arr_waterleak, arr_waterlevel_norm, arr_waterleak_norm
-    global arr_door, arr_fire, arr_door_norm, arr_fire_norm
+    global arr_waterlevel, arr_waterleak, arr_waterlevel_norm
+    global arr_door, arr_fire
     outliers_fraction = 0.08
 
     #model initialization
