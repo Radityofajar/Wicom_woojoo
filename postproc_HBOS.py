@@ -26,8 +26,8 @@ threshold_temp3_lower = 5
 threshold_temp3_upper = 40
 
 #sliding window setting
-batch_size = 10 # 60 = 1 hour
-train_number = 60 # 1440 = 1 day
+batch_size = 60 # 60 = 1 hour
+train_number = 1440 # 1440 = 1 day
 
 
 def train(): # for retraining model & overwriting model
