@@ -7,14 +7,11 @@
     PyOD >> pip install pyod    
     joblib >> pip install joblib
     numpy >> pip install numpy
-    pandas >> pip install pandas
-  
+    pandas >> pip install pandas 
 ### Data
 Contains all the datasets that collected from sensor located in WicomAI LAB, Kookmin University
-
 ### model
 Contains initial models (temperature, humidity, waterlevel, waterleak, door, fire)
-
 ### postproc.py
 This is the main program to run the anomaly detection based on Isolation Forest (IForest) using postprocess features by IoT.own Coxlab.
 (nb: flow_postproc.py is similar with postproc.py but more readable and easily modify)
