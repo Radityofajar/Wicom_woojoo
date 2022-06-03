@@ -29,7 +29,6 @@ threshold_temp3_upper = 40
 batch_size = 60 # 60 = 1 hour
 train_number = 1440 # 1440 = 1 day
 
-
 def train(): # for retraining model & overwriting model
     global arr_hum1, arr_hum2, arr_hum1_norm, arr_hum2_norm
     global arr_temp1, arr_temp2, arr_temp3, arr_temp1_norm, arr_temp2_norm, arr_temp3_norm
@@ -127,7 +126,6 @@ def post_process(message):
         model_temp3 = load("model\HBOS_model_temp3.joblib")
         model_waterlevel = load("model\HBOS_model_waterlevel.joblib")
 
-
         sc_hum1 = load('SC\std_scaler_hum1.bin')
         sc_hum2 = load('SC\std_scaler_hum2.bin')
         sc_temp1 = load('SC\std_scaler_temp1.bin')
@@ -170,6 +168,7 @@ def post_process(message):
         sc_temp2 = load('SC\std_scaler_temp2.bin')
         sc_temp3 = load('SC\std_scaler_temp3.bin')
         sc_waterlevel = load('SC\std_scaler_waterlevel.bin')
+        counter += 1
 
     elif counter<= (train_number + batch_size): 
         #sliding window method
