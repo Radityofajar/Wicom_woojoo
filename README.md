@@ -20,6 +20,9 @@ This is the main program to run the anomaly detection based on Isolation Forest 
     
     -> model initialization parameter: to use what kind of model needed and also how you want to retrain it.
   Step 3: Run the postproc.py program
+    -> Parameters
+      1. Status: The systems condition. the value whether normal(1) or abnormal(-1)
+      2. Anomaly score: How likely the value to be normal or abnormal. When it closer to -1, then it is likely to be abnormal and vice versa.
 
 #### Sliding window
 Parameter: batch_size and train_number
@@ -28,6 +31,18 @@ Parameter: batch_size and train_number
 ### postproc_HBOS.py
 Histogram- based outlier detection (HBOS) is an efficient unsupervised method. It assumes the feature independence and calculates the degree of outlyingness by building histograms. (model_init_2.py)
 
+  -> Parameter
+  
+    1. Status: The systems condition. the value whether normal(0) or abnormal(1)
+    
+    2. Anomaly score: How likely the value to be normal or abnormal. Outliers are assigned with larger anomaly scores.
+
 ### postproc_MCD.py
 Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be applied on Gaussian-distributed data, but could still be relevant on data drawn from a unimodal, symmetric distribution.
 (model_init_2.py)
+
+  -> Parameter
+  
+    1. Status: The systems condition. the value whether normal(0) or abnormal(1)
+    
+    2. Anomaly score: How likely the value to be normal or abnormal. Outliers are assigned with larger anomaly scores.
