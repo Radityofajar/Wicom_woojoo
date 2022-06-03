@@ -131,7 +131,7 @@ def post_process(message):
     elif counter == (train_number+1) : 
         #retrain the  model
         thread = threading.Thread(target=train)
-        print("mode3")
+        print("mode3:retrain")
         print(thread.is_alive())
         if thread.is_alive():
             print('thread still running')          
@@ -139,8 +139,8 @@ def post_process(message):
             print('thread is starting')
             thread.start()
         counter += 1
-        thread.join()
-
+        thread.join()    
+    
     elif counter == (train_number+2):
         print("mode4:load retrain model")
         model_hum1 = load("model\model_hum1.joblib")
@@ -154,7 +154,7 @@ def post_process(message):
         model_door = load("model\model_door.joblib")
         counter += 1
 
-    elif counter<= (train_number + batch_size): 
+    elif counter < (train_number + batch_size): 
         #sliding window method
         print("mode5")
         counter +=1
