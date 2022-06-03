@@ -13,7 +13,7 @@ Contains all the datasets that collected from sensor located in WicomAI LAB, Koo
 ### model
 Contains initial models (temperature, humidity, waterlevel, waterleak, door, fire)
 
-We have 3 different models options for anomaly detection: **Isolation Forest (IForest)**, **Histogram- based outlier detection (HBOS)**, and **Minimum Covariance Determinant (MCD)**.
+We have 3 different models' options for anomaly detection: **Isolation Forest (IForest)**, **Histogram- based outlier detection (HBOS)**, and **Minimum Covariance Determinant (MCD)**.
 ### postproc_IF.py
 This is the main program to run the anomaly detection based on Isolation Forest (IForest) using postprocess features by IoT.own Coxlab.
 (nb: flow_postproc.py is similar with postproc.py but more readable and easily modify)
@@ -65,7 +65,7 @@ Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be a
 
 The tables above show the comparison between each anomaly detection algorithm. We choose the best 3 among of them (Isolation Forest, HBOS, and MCD) and integrate it with streams data from postprocess feature.
 
-Isolation Forest(IForest): The main advantage of Isolation Forest is this algorithm proven effective to detect anomaly detection. ROC and Precision table show that IForest is pretty stable. The minor problem is IForest training time little bit slower compare with HBOS and MCD. However, this problem can be solved with multithreading method.
+Isolation Forest(IForest): The main advantage of Isolation Forest is this algorithm proven effective to detect anomaly detection. ROC and Precision table show that IForest is stable. The minor problem is IForest training time little bit slower compare with HBOS and MCD. However, this problem can be solved with multithreading method.
 
 HBOS: This algorithm is faster than IForest, but the ROC results show that this algorithm little bit struggle to detect anomaly in different types of data.
 
