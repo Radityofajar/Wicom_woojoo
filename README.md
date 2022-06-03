@@ -25,7 +25,7 @@ This is the main program to run the anomaly detection based on Isolation Forest 
     
       1. Status: The systems condition. the value whether normal(1) or abnormal(-1)
       
-      2. Anomaly score: How likely the value to be normal or abnormal. When it closer to -1, then it is likely to be abnormal and vice versa.
+      2. Anomaly score: How likely the value to be normal or abnormal. When it is closer to -1, then it is likely to be abnormal and vice versa.
 
 #### Sliding window
 Parameter: batch_size and train_number
