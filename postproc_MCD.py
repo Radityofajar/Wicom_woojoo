@@ -1,7 +1,7 @@
 #import all the library needed
 import numpy as np
 from pyiotown_wicom import postprocess
-#import pyiotown.post
+import pyiotown.post
 from joblib import load, dump
 from pyod.models.mcd import MCD
 from sklearn.preprocessing import StandardScaler
@@ -33,8 +33,8 @@ train_number = 1440 # 1440 = 1 day
 def train(): # for retraining model & overwriting model
     global arr_hum1, arr_hum2, arr_hum1_norm, arr_hum2_norm
     global arr_temp1, arr_temp2, arr_temp3, arr_temp1_norm, arr_temp2_norm, arr_temp3_norm
-    global arr_waterlevel, arr_waterleak, arr_waterlevel_norm, arr_waterleak_norm
-    global arr_door, arr_fire, arr_door_norm, arr_fire_norm
+    global arr_waterlevel, arr_waterleak, arr_waterlevel_norm
+    global arr_door, arr_fire
     outliers_fraction = 0.08
 
     #model initialization
@@ -44,10 +44,7 @@ def train(): # for retraining model & overwriting model
     model_temp2 = MCD(contamination=outliers_fraction,random_state=42)
     model_temp3 = MCD(contamination=outliers_fraction,random_state=42)
     model_waterlevel = MCD(contamination=outliers_fraction,random_state=42)
-    model_waterleak = MCD(contamination=outliers_fraction,random_state=42)
-    model_fire = MCD(contamination=outliers_fraction,random_state=42)
-    model_door = MCD(contamination=outliers_fraction,random_state=42)
-    
+
     #data preprocess
     arr_hum1 = arr_hum1.reshape(-1,1)
     arr_hum2 = arr_hum2.reshape(-1,1)
@@ -55,17 +52,20 @@ def train(): # for retraining model & overwriting model
     arr_temp2 = arr_temp2.reshape(-1,1)
     arr_temp3 = arr_temp3.reshape(-1,1)
     arr_waterlevel = arr_waterlevel.reshape(-1,1)
-    arr_waterleak = arr_waterleak.reshape(-1,1)
-    arr_fire = arr_fire.reshape(-1,1)
-    arr_door = arr_door.reshape(-1,1)
 
+    arr_hum1_norm = arr_hum1_norm.reshape(-1,1)
+    arr_hum2_norm = arr_hum2_norm.reshape(-1,1)
+    arr_temp1_norm = arr_temp1_norm.reshape(-1,1)
+    arr_temp2_norm = arr_temp2_norm.reshape(-1,1)
+    arr_temp3_norm = arr_temp3_norm.reshape(-1,1)
+    arr_waterlevel_norm = arr_waterlevel_norm.reshape(-1,1)
+ 
     sc_hum1 = StandardScaler().fit_transform(arr_hum1)
     sc_hum2 = StandardScaler().fit_transform(arr_hum2)
     sc_temp1 = StandardScaler().fit_transform(arr_temp1)
     sc_temp2 = StandardScaler().fit_transform(arr_temp2)
     sc_temp3 = StandardScaler().fit_transform(arr_temp3)
     sc_waterlevel = StandardScaler().fit_transform(arr_waterlevel)
-
 
     #model training
     model_hum1.fit(arr_hum1_norm)
@@ -74,9 +74,6 @@ def train(): # for retraining model & overwriting model
     model_temp2.fit(arr_temp2_norm)
     model_temp3.fit(arr_temp3_norm)
     model_waterlevel.fit(arr_waterlevel_norm)
-    model_waterleak.fit(arr_waterleak_norm)
-    model_fire.fit(arr_fire_norm)
-    model_door.fit(arr_door_norm)
 
     #save/overwrite model
     dump(model_hum1, 'model\MCD_model_hum1.joblib')
@@ -104,11 +101,10 @@ def post_process(message):
     global counter
     global model_hum1, model_hum2
     global model_temp1, model_temp2, model_temp3
-    global model_waterlevel, model_waterleak
-    global model_fire, model_door
-    
+    global model_waterlevel
+
     print(message)
-    thread = threading.Thread(target=train)
+    
     temp1 = np.array([message['data']['temp1']]).T
     temp2 = np.array([message['data']['temp2']]).T
     temp3 = np.array([message['data']['temp3']]).T
@@ -146,6 +142,7 @@ def post_process(message):
 
     elif counter == (train_number+1) : 
         #retrain the  model
+        thread = threading.Thread(target=train)
         print("mode3")
         print(thread.is_alive())
         if thread.is_alive():
@@ -177,17 +174,14 @@ def post_process(message):
         arr_temp1_norm = arr_temp1_norm[-train_number:]
         arr_temp3_norm = arr_temp3_norm[-train_number:]
         arr_waterlevel_norm = arr_waterlevel_norm[-train_number:]
-        arr_waterleak_norm = arr_waterleak_norm[-train_number:]
-        arr_fire_norm = arr_fire_norm[-train_number:]
-        arr_door_norm = arr_door_norm[-train_number:]
 
     #normalize the data using standard scaler
-    hum1_norm = sc_hum1.transform(hum1)
-    hum2_norm = sc_hum2.transform(hum2)
-    temp1_norm = sc_temp1.transform(temp1)
-    temp2_norm = sc_temp2.transform(temp2)
-    temp3_norm = sc_temp3.transform(temp3)
-    water_level_norm = sc_waterlevel.transform(water_level)
+    hum1_norm = sc_hum1.transform(hum1.reshape(1,-1))
+    hum2_norm = sc_hum2.transform(hum2.reshape(1,-1))
+    temp1_norm = sc_temp1.transform(temp1.reshape(1,-1))
+    temp2_norm = sc_temp2.transform(temp2.reshape(1,-1))
+    temp3_norm = sc_temp3.transform(temp3.reshape(1,-1))
+    water_level_norm = sc_waterlevel.transform(water_level.reshape(1,-1))
 
 
     #input data to the window
@@ -341,5 +335,5 @@ if __name__ == '__main__':
     url = "https://town.coxlab.kr/"
     username = "rfpamungkas23@gmail.com"
     password = "c34859e08fa526f642881820d5108ccd475d5b58efbc8b4a5b89fd93366fe1d1"
-    postprocess(url,postproc_name,post_process, username, password)
-    #pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
+    #postprocess(url,postproc_name,post_process, username, password)
+    pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
