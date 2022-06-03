@@ -26,8 +26,8 @@ threshold_temp3_lower = 5
 threshold_temp3_upper = 40
 
 #sliding window setting
-batch_size = 60 # 60 = 1 hour
-train_number = 1440 # 1440 = 1 day
+batch_size = 10 # 60 = 1 hour
+train_number = 60 # 1440 = 1 day
 
 
 def train(): # for retraining model & overwriting model
@@ -108,11 +108,11 @@ def post_process(message):
     global arr_temp1, arr_temp2, arr_temp3, arr_temp1_norm, arr_temp2_norm, arr_temp3_norm
     global arr_waterlevel, arr_waterleak, arr_waterlevel_norm, arr_waterleak_norm
     global arr_door, arr_fire, arr_door_norm, arr_fire_norm
+    global sc_hum1, sc_hum2, sc_temp1, sc_temp2, sc_temp3, sc_waterlevel
     global counter
     global model_hum1, model_hum2
     global model_temp1, model_temp2, model_temp3
-    global model_waterlevel, model_waterleak
-    global model_fire, model_door
+    global model_waterlevel
     
     print(message)
     thread = threading.Thread(target=train)
@@ -184,6 +184,7 @@ def post_process(message):
         arr_hum1_norm = arr_hum1_norm[-train_number:]
         arr_hum2_norm = arr_hum2_norm[-train_number:]
         arr_temp1_norm = arr_temp1_norm[-train_number:]
+        arr_temp2_norm = arr_temp2_norm[-train_number:]
         arr_temp3_norm = arr_temp3_norm[-train_number:]
         arr_waterlevel_norm = arr_waterlevel_norm[-train_number:]
         arr_waterleak_norm = arr_waterleak_norm[-train_number:]
@@ -191,13 +192,12 @@ def post_process(message):
         arr_door_norm = arr_door_norm[-train_number:]
 
     #normalize the data using standard scaler
-    hum1_norm = sc_hum1.transform(hum1)
-    hum2_norm = sc_hum2.transform(hum2)
-    temp1_norm = sc_temp1.transform(temp1)
-    temp2_norm = sc_temp2.transform(temp2)
-    temp3_norm = sc_temp3.transform(temp3)
-    water_level_norm = sc_waterlevel.transform(water_level)
-
+    hum1_norm = sc_hum1.transform(hum1.reshape(1,-1))
+    hum2_norm = sc_hum2.transform(hum2.reshape(1,-1))
+    temp1_norm = sc_temp1.transform(temp1.reshape(1,-1))
+    temp2_norm = sc_temp2.transform(temp2.reshape(1,-1))
+    temp3_norm = sc_temp3.transform(temp3.reshape(1,-1))
+    water_level_norm = sc_waterlevel.transform(water_level.reshape(1,-1))
 
     #input data to the window
     arr_hum1 = np.append(arr_hum1,hum1)
@@ -217,7 +217,6 @@ def post_process(message):
     arr_temp3_norm = np.append(arr_temp3_norm,temp3_norm)
     arr_waterlevel_norm = np.append(arr_waterlevel_norm,water_level_norm)
 
-
     #preprocess the data for anomaly detection
     newhum1 = hum1_norm.reshape(1,-1)
     newhum2 = hum2_norm.reshape(1,-1)
@@ -225,7 +224,6 @@ def post_process(message):
     newtemp2 = temp2_norm.reshape(1,-1)
     newtemp3 = temp3_norm.reshape(1,-1)
     newwater_level = water_level_norm.reshape(1,-1)
-
     
     #anomaly detection / Isolation Forest Prediction
     anomaly_score_hum1 = model_hum1.decision_function(newhum1)
@@ -235,14 +233,12 @@ def post_process(message):
     anomaly_score_temp3 = model_temp3.decision_function(newtemp3)
     anomaly_score_waterlevel = model_waterlevel.decision_function(newwater_level)
 
-
     anomalies_hum1 = model_hum1.predict(newhum1)
     anomalies_hum2 = model_hum2.predict(newhum2)
     anomalies_temp1 = model_temp1.predict(newtemp1)
     anomalies_temp2 = model_temp2.predict(newtemp2)
     anomalies_temp3 = model_temp3.predict(newtemp3)
     anomalies_waterlevel = model_waterlevel.predict(newwater_level)
-
 
     #clustering between normal & abnormal
     if anomalies_hum1 == 0 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
