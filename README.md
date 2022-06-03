@@ -20,8 +20,11 @@ This is the main program to run the anomaly detection based on Isolation Forest 
     
     -> model initialization parameter: to use what kind of model needed and also how you want to retrain it.
   Step 3: Run the postproc.py program
+  
     -> Parameters
+    
       1. Status: The systems condition. the value whether normal(1) or abnormal(-1)
+      
       2. Anomaly score: How likely the value to be normal or abnormal. When it closer to -1, then it is likely to be abnormal and vice versa.
 
 #### Sliding window
