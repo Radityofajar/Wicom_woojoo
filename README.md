@@ -9,8 +9,6 @@
     numpy >> pip install numpy
     pandas >> pip install pandas
   
-  
-
 ### Data
 Contains all the datasets that collected from sensor located in WicomAI LAB, Kookmin University
 
@@ -62,9 +60,9 @@ Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be a
     2. Anomaly score: How likely the value to be normal or abnormal. Outliers are assigned with larger anomaly scores.
     
 ## Comparison
-![model_comparison1](/docs/result_timecomplexity.jpg)
-![model_comparison2](/docs/result_roc.jpg)
-![model_comparison3](/docs/result_precision.jpg)
+![model_comparison1](/docs/result_timecomplexity.JPG)
+![model_comparison2](/docs/result_roc.JPG)
+![model_comparison3](/docs/result_precision.JPG)
 The table above shows the comparison between each anomaly detection algorithm. We choose the best 3 among of them (Isolation Forest, HBOS, and MCD) and integrate it with streams data from postprocess feature.
 
 We strongly recommend to use **Isolation Forest**, because its reliability and stability.
