@@ -34,17 +34,22 @@ def train(): # for retraining model & overwriting model
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
-  
+    
     #model initialization
-    model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
-    model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
-    model_temp1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
-    model_temp2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
-    model_temp3 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
-    model_waterlevel = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_waterleak = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_fire = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
-    model_door = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.01)
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.05
+    
+    model_hum1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_hum2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_temp1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_temp2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_temp3 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_waterlevel = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
+    model_waterleak = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
+    model_fire = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
+    model_door = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
     
     #data preprocess
     arr_hum1 = arr_hum1.reshape(-1,1)
