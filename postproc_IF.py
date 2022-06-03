@@ -112,7 +112,7 @@ def post_process(message):
     
     print(counter)
 
-    if counter == 0: #Using Initial model for the mode 1 & 2
+    if counter == 1: #Using Initial model for the mode 1 & 2
         print("mode1")
         model_hum1 = load("model\model_hum1.joblib")
         model_hum2 = load("model\model_hum2.joblib")
