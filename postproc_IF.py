@@ -34,7 +34,7 @@ def train(): # for retraining model & overwriting model
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
-    
+
     #model initialization
     estimator = 100
     samples = 500
@@ -86,6 +86,7 @@ def train(): # for retraining model & overwriting model
     print('Retraining is done')
 
 def post_process(message):
+
     global arr_hum1, arr_hum2
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
@@ -97,7 +98,8 @@ def post_process(message):
     global model_fire, model_door
     
     print(message)
-        
+    
+    
     temp1 = np.array([message['data']['temp1']]).T
     temp2 = np.array([message['data']['temp2']]).T
     temp3 = np.array([message['data']['temp3']]).T
