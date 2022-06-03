@@ -146,6 +146,7 @@ def post_process(message):
         arr_hum1 = arr_hum1[-train_number:]
         arr_hum2 = arr_hum2[-train_number:]
         arr_temp1 = arr_temp1[-train_number:]
+        arr_temp2 = arr_temp2[-train_number:]
         arr_temp3 = arr_temp3[-train_number:]
         arr_waterlevel = arr_waterlevel[-train_number:]
         arr_waterleak = arr_waterleak[-train_number:]
