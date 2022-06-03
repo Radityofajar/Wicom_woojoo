@@ -44,9 +44,7 @@ def train(): # for retraining model & overwriting model
     model_temp2 = HBOS(contamination=outliers_fraction)
     model_temp3 = HBOS(contamination=outliers_fraction)
     model_waterlevel = HBOS(contamination=outliers_fraction)
-    model_waterleak = HBOS(contamination=outliers_fraction)
-    model_fire = HBOS(contamination=outliers_fraction)
-    model_door = HBOS(contamination=outliers_fraction)
+
     
     #data preprocess
     arr_hum1 = arr_hum1.reshape(-1,1)
@@ -55,9 +53,15 @@ def train(): # for retraining model & overwriting model
     arr_temp2 = arr_temp2.reshape(-1,1)
     arr_temp3 = arr_temp3.reshape(-1,1)
     arr_waterlevel = arr_waterlevel.reshape(-1,1)
-    arr_waterleak = arr_waterleak.reshape(-1,1)
-    arr_fire = arr_fire.reshape(-1,1)
-    arr_door = arr_door.reshape(-1,1)
+
+
+    arr_hum1_norm = arr_hum1_norm.reshape(-1,1)
+    arr_hum2_norm = arr_hum2_norm.reshape(-1,1)
+    arr_temp1_norm = arr_temp1_norm.reshape(-1,1)
+    arr_temp2_norm = arr_temp2_norm.reshape(-1,1)
+    arr_temp3_norm = arr_temp3_norm.reshape(-1,1)
+    arr_waterlevel_norm = arr_waterlevel_norm.reshape(-1,1)
+
 
     sc_hum1 = StandardScaler().fit_transform(arr_hum1)
     sc_hum2 = StandardScaler().fit_transform(arr_hum2)
@@ -65,9 +69,7 @@ def train(): # for retraining model & overwriting model
     sc_temp2 = StandardScaler().fit_transform(arr_temp2)
     sc_temp3 = StandardScaler().fit_transform(arr_temp3)
     sc_waterlevel = StandardScaler().fit_transform(arr_waterlevel)
-    sc_waterleak = StandardScaler().fit_transform(arr_waterleak)
-    sc_fire = StandardScaler().fit_transform(arr_fire)
-    sc_door = StandardScaler().fit_transform(arr_door)
+
 
     #model training
     model_hum1.fit(arr_hum1_norm)
@@ -76,9 +78,7 @@ def train(): # for retraining model & overwriting model
     model_temp2.fit(arr_temp2_norm)
     model_temp3.fit(arr_temp3_norm)
     model_waterlevel.fit(arr_waterlevel_norm)
-    model_waterleak.fit(arr_waterleak_norm)
-    model_fire.fit(arr_fire_norm)
-    model_door.fit(arr_door_norm)
+
 
     #save/overwrite model
     dump(model_hum1, 'model\HBOS_model_hum1.joblib')
@@ -87,9 +87,6 @@ def train(): # for retraining model & overwriting model
     dump(model_temp2, 'model\HBOS_model_temp2.joblib')
     dump(model_temp3, 'model\HBOS_model_temp3.joblib')
     dump(model_waterlevel, 'model\HBOS_model_waterlevel.joblib')
-    dump(model_waterleak, 'model\HBOS_model_waterleak.joblib')
-    dump(model_fire, 'model\HBOS_model_fire.joblib')
-    dump(model_door, 'model\HBOS_model_door.joblib')
 
     dump(sc_hum1, 'SC\std_scaler_hum1.bin')
     dump(sc_hum2, 'SC\std_scaler_hum2.bin')
@@ -97,9 +94,7 @@ def train(): # for retraining model & overwriting model
     dump(sc_temp2, 'SC\std_scaler_temp2.bin')
     dump(sc_temp3, 'SC\std_scaler_temp3.bin')
     dump(sc_waterlevel, 'SC\std_scaler_waterlevel.bin')
-    dump(sc_waterleak, 'SC\std_scaler_waterleak.bin')
-    dump(sc_fire, 'SC\std_scaler_fire.bin')
-    dump(sc_door, 'SC\std_scaler_door.bin')
+
     print('Retraining is done')
 
 def post_process(message):
