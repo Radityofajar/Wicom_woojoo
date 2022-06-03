@@ -6,7 +6,7 @@ from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
 
-counter = 0
+counter = 1
 
 #Thresholding value
 upper_thresh = 10
@@ -21,7 +21,11 @@ def train(): #For retraining model & overwriting model
     global arr_sensor
 
     #model initialization
-    model = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.05
+    model = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
 
     #data preprocess
     arr_sensor = arr_sensor.reshape(-1,1)
@@ -34,10 +38,12 @@ def train(): #For retraining model & overwriting model
 
 def post_process(message):
     global arr_sensor
+    global counter
+    global model
 
     sensor = np.array([message['data']['sensor']]).T
 
-    if counter ==0:
+    if counter == 1:
         #mode 1: Using initial model
         model = load('path/filename.joblib')
         counter += 1
@@ -57,8 +63,13 @@ def post_process(message):
         counter += 1
         thread.join()
     
-    elif counter <= (train_number + 1 + batch_size):
-        #mode 4: sliding window method
+    elif counter == (train_number+2):
+        #mode 4: load retrain model
+        model = load('path/filename.joblib')
+        counter += 1
+
+    elif counter <= (train_number + batch_size):
+        #mode 5: sliding window method
         counter += 1
 
     else:
