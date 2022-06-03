@@ -60,12 +60,12 @@ def train(): # for retraining model & overwriting model
     arr_temp3_norm = arr_temp3_norm.reshape(-1,1)
     arr_waterlevel_norm = arr_waterlevel_norm.reshape(-1,1)
  
-    sc_hum1 = StandardScaler().fit_transform(arr_hum1)
-    sc_hum2 = StandardScaler().fit_transform(arr_hum2)
-    sc_temp1 = StandardScaler().fit_transform(arr_temp1)
-    sc_temp2 = StandardScaler().fit_transform(arr_temp2)
-    sc_temp3 = StandardScaler().fit_transform(arr_temp3)
-    sc_waterlevel = StandardScaler().fit_transform(arr_waterlevel)
+    sc_hum1 = StandardScaler().fit(arr_hum1)
+    sc_hum2 = StandardScaler().fit(arr_hum2)
+    sc_temp1 = StandardScaler().fit(arr_temp1)
+    sc_temp2 = StandardScaler().fit(arr_temp2)
+    sc_temp3 = StandardScaler().fit(arr_temp3)
+    sc_waterlevel = StandardScaler().fit(arr_waterlevel)
 
     #model training
     model_hum1.fit(arr_hum1_norm)
