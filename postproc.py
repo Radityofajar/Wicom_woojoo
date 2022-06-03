@@ -8,7 +8,6 @@ import threading
 import warnings
 warnings.filterwarnings("ignore")
 
-
 counter = 0
 
 #thresholding value
@@ -35,9 +34,7 @@ def train(): # for retraining model & overwriting model
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
     global arr_door, arr_fire
-    
-
-    
+  
     #model initialization
     model_hum1 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
     model_hum2 = IsolationForest(n_estimators=100, max_samples=500, random_state=42, contamination=0.05)
@@ -84,7 +81,6 @@ def train(): # for retraining model & overwriting model
     print('Retraining is done')
 
 def post_process(message):
-
     global arr_hum1, arr_hum2
     global arr_temp1, arr_temp2, arr_temp3
     global arr_waterlevel, arr_waterleak
@@ -96,8 +92,7 @@ def post_process(message):
     global model_fire, model_door
     
     print(message)
-    
-    thread = threading.Thread(target=train)
+        
     temp1 = np.array([message['data']['temp1']]).T
     temp2 = np.array([message['data']['temp2']]).T
     temp3 = np.array([message['data']['temp3']]).T
@@ -130,6 +125,7 @@ def post_process(message):
 
     elif counter == (train_number+1) : 
         #retrain the  model
+        thread = threading.Thread(target=train)
         print("mode3")
         print(thread.is_alive())
         if thread.is_alive():
