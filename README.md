@@ -58,7 +58,7 @@ Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be a
     
     2. Anomaly score: How likely the value to be normal or abnormal. Outliers are assigned with larger anomaly scores.
     
-## Comparison
+## Comparison & Conclusion
 ![model_comparison1](/docs/result_timecomplexity.JPG)
 ![model_comparison2](/docs/result_roc.JPG)
 ![model_comparison3](/docs/result_precision.JPG)
