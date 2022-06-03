@@ -63,7 +63,14 @@ Outlier Detection with Minimum Covariance Determinant (MCD) estimator is to be a
 ![model_comparison1](/docs/result_timecomplexity.JPG)
 ![model_comparison2](/docs/result_roc.JPG)
 ![model_comparison3](/docs/result_precision.JPG)
-The table above shows the comparison between each anomaly detection algorithm. We choose the best 3 among of them (Isolation Forest, HBOS, and MCD) and integrate it with streams data from postprocess feature.
+
+The tables above show the comparison between each anomaly detection algorithm. We choose the best 3 among of them (Isolation Forest, HBOS, and MCD) and integrate it with streams data from postprocess feature.
+
+Isolation Forest(IForest): The main advantage of Isolation Forest is this algorithm proven effective to detect anomaly detection. ROC and Precision table show that IForest is pretty stable. The minor problem is IForest training time little bit slower compare with HBOS and MCD. However, this problem can be solved with multithreading method.
+
+HBOS: This algorithm is faster than IForest, but the ROC results show that this algorithm little bit struggle to detect anomaly in different types of data.
+
+MCD: similar like HBOS, this algorithm is faster than IForest. However, the precision score of this algorithm is low.
 
 We strongly recommend to use **Isolation Forest**, because its reliability and stability.
 
