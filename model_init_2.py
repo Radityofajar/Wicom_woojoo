@@ -18,12 +18,19 @@ df_temp3 = np.array([data_frame['temperature3']]).T
 df_waterlevel = np.array([data_frame['waterlevel']]).T
 
 
-sc_hum1 = StandardScaler().fit_transform(df_hum1)
-sc_hum2 = StandardScaler().fit_transform(df_hum2)
-sc_temp1 = StandardScaler().fit_transform(df_temp1)
-sc_temp2 = StandardScaler().fit_transform(df_temp2)
-sc_temp3 = StandardScaler().fit_transform(df_temp3)
-sc_waterlevel = StandardScaler().fit_transform(df_waterlevel)
+sc_hum1 = StandardScaler().fit(df_hum1)
+sc_hum2 = StandardScaler().fit(df_hum2)
+sc_temp1 = StandardScaler().fit(df_temp1)
+sc_temp2 = StandardScaler().fit(df_temp2)
+sc_temp3 = StandardScaler().fit(df_temp3)
+sc_waterlevel = StandardScaler().fit(df_waterlevel)
+
+df_sc_hum1 = sc_hum1.transform(df_hum1)
+df_sc_hum2 = sc_hum2.transform(df_hum2)
+df_sc_temp1 = sc_hum1.transform(df_temp1)
+df_sc_temp2 = sc_hum1.transform(df_temp2)
+df_sc_temp3 = sc_hum1.transform(df_temp3)
+df_sc_waterlevel = sc_hum1.transform(df_waterlevel)
 
 
 model_hum1 = HBOS(contamination=outliers_fraction)
@@ -45,12 +52,12 @@ model_waterlevel = MCD(contamination=outliers_fraction,random_state=42)
 '''
 
 t0 = time.time()
-model_hum1.fit(sc_hum1)
-model_hum2.fit(sc_hum2)
-model_temp1.fit(sc_temp1)
-model_temp2.fit(sc_temp2)
-model_temp3.fit(sc_temp3)
-model_waterlevel.fit(sc_waterlevel)
+model_hum1.fit(df_sc_hum1)
+model_hum2.fit(df_sc_hum2)
+model_temp1.fit(df_sc_temp1)
+model_temp2.fit(df_sc_temp2)
+model_temp3.fit(df_sc_temp3)
+model_waterlevel.fit(df_sc_waterlevel)
 
 t1 = time.time()
 print(t1-t0)
