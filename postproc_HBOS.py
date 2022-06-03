@@ -45,7 +45,6 @@ def train(): # for retraining model & overwriting model
     model_temp3 = HBOS(contamination=outliers_fraction)
     model_waterlevel = HBOS(contamination=outliers_fraction)
 
-    
     #data preprocess
     arr_hum1 = arr_hum1.reshape(-1,1)
     arr_hum2 = arr_hum2.reshape(-1,1)
@@ -54,7 +53,6 @@ def train(): # for retraining model & overwriting model
     arr_temp3 = arr_temp3.reshape(-1,1)
     arr_waterlevel = arr_waterlevel.reshape(-1,1)
 
-
     arr_hum1_norm = arr_hum1_norm.reshape(-1,1)
     arr_hum2_norm = arr_hum2_norm.reshape(-1,1)
     arr_temp1_norm = arr_temp1_norm.reshape(-1,1)
@@ -62,14 +60,12 @@ def train(): # for retraining model & overwriting model
     arr_temp3_norm = arr_temp3_norm.reshape(-1,1)
     arr_waterlevel_norm = arr_waterlevel_norm.reshape(-1,1)
 
-
-    sc_hum1 = StandardScaler().fit_transform(arr_hum1)
-    sc_hum2 = StandardScaler().fit_transform(arr_hum2)
-    sc_temp1 = StandardScaler().fit_transform(arr_temp1)
-    sc_temp2 = StandardScaler().fit_transform(arr_temp2)
-    sc_temp3 = StandardScaler().fit_transform(arr_temp3)
-    sc_waterlevel = StandardScaler().fit_transform(arr_waterlevel)
-
+    sc_hum1 = StandardScaler().fit(arr_hum1)
+    sc_hum2 = StandardScaler().fit(arr_hum2)
+    sc_temp1 = StandardScaler().fit(arr_temp1)
+    sc_temp2 = StandardScaler().fit(arr_temp2)
+    sc_temp3 = StandardScaler().fit(arr_temp3)
+    sc_waterlevel = StandardScaler().fit(arr_waterlevel)
 
     #model training
     model_hum1.fit(arr_hum1_norm)
@@ -78,7 +74,6 @@ def train(): # for retraining model & overwriting model
     model_temp2.fit(arr_temp2_norm)
     model_temp3.fit(arr_temp3_norm)
     model_waterlevel.fit(arr_waterlevel_norm)
-
 
     #save/overwrite model
     dump(model_hum1, 'model\HBOS_model_hum1.joblib')
@@ -110,7 +105,7 @@ def post_process(message):
     global model_waterlevel
     
     print(message)
-    thread = threading.Thread(target=train)
+
     temp1 = np.array([message['data']['temp1']]).T
     temp2 = np.array([message['data']['temp2']]).T
     temp3 = np.array([message['data']['temp3']]).T
@@ -149,6 +144,7 @@ def post_process(message):
 
     elif counter == (train_number+1) : 
         #retrain the  model
+        thread = threading.Thread(target=train)
         print("mode3")
         print(thread.is_alive())
         if thread.is_alive():
@@ -182,9 +178,6 @@ def post_process(message):
         arr_temp2_norm = arr_temp2_norm[-train_number:]
         arr_temp3_norm = arr_temp3_norm[-train_number:]
         arr_waterlevel_norm = arr_waterlevel_norm[-train_number:]
-        arr_waterleak_norm = arr_waterleak_norm[-train_number:]
-        arr_fire_norm = arr_fire_norm[-train_number:]
-        arr_door_norm = arr_door_norm[-train_number:]
 
     #normalize the data using standard scaler
     hum1_norm = sc_hum1.transform(hum1.reshape(1,-1))
