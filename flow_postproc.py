@@ -1,16 +1,20 @@
 #import all the library needed
 import numpy as np
-#from pyiotown_wicom import postprocess
+from pyiotown_wicom import postprocess
 import pyiotown.post
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
+import warnings
+import sys
+
+warnings.filterwarnings("ignore")
 
 counter = 1
 
 #Thresholding value
-upper_thresh = 10
-lowe_thresh = 0
+upper_thresh = 40
+lower_thresh = 0
 
 #Sliding window setting (depends on the data collection cycle)
 #in this case, data collection cyle is 1 minute
@@ -24,7 +28,7 @@ def train(): #For retraining model & overwriting model
     estimator = 100
     samples = 500
     randstate = 42
-    outlier_fraction = 0.05
+    outlier_fraction = 0.01
     model = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
 
     #data preprocess
@@ -34,18 +38,18 @@ def train(): #For retraining model & overwriting model
     model.fit(arr_sensor)
 
     #save model
-    dump(model, 'path/filename.joblib')
+    dump(model, 'model\model_temp1.joblib')
 
 def post_process(message):
     global arr_sensor
     global counter
     global model
 
-    sensor = np.array([message['data']['sensor']]).T
+    sensor = np.array([message['data']['temperature']]).T
 
     if counter == 1:
         #mode 1: Using initial model
-        model = load('path/filename.joblib')
+        model = load('model\model_temp1.joblib')
         counter += 1
     
     elif counter <= train_number:
@@ -65,7 +69,7 @@ def post_process(message):
     
     elif counter == (train_number+2):
         #mode 4: load retrain model
-        model = load('path/filename.joblib')
+        model = load('model\model_temp1.joblib')
         counter += 1
 
     elif counter <= (train_number + batch_size):
@@ -74,7 +78,7 @@ def post_process(message):
 
     else:
         #optimize the array size of sliding window
-        arr_sensor =  arr_sensor[-train_number:]
+        arr_sensor =  arr_sensor[-(2*train_number+batch_size):]
         counter = (train_number+1)
     
     #input stream data to the window
@@ -88,7 +92,7 @@ def post_process(message):
     anomaly_sensor = model.predict(newsensor)
 
     #clustering between normal & abnormal
-    if anomaly_sensor > 0 and float(sensor[0]) > lowe_thresh and float(sensor[0]) < upper_thresh: #normal condition
+    if anomaly_sensor >= -0.15 and float(sensor[0]) > lower_thresh and float(sensor[0]) < upper_thresh: #normal condition
         sensor_status = 'normal'
     else: #abnormal condition
         sensor_status = 'abnormal'
@@ -104,10 +108,13 @@ def post_process(message):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        print(f"Usage: {sys.argv[0]} [URL] [name] [token]")
+        exit(1)
     arr_sensor = np.array([[]])
     postproc_name = 'post_process name'
-    url = "url name"
-    username = "username"
-    password = "token"
-    #postprocess(url,postproc_name,post_process, username, password)
-    pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
+    url = sys.argv[1]
+    username = sys.argv[2]
+    password = sys.argv[3]
+    postprocess(url,postproc_name,post_process, username, password)
+    #pyiotown.post.postprocess(url,postproc_name,post_process, username, password)
