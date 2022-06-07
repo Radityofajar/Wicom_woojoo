@@ -3,11 +3,11 @@
 ### System Requirement
     Python 3
     Pyiotown >> python3 -m pip install pyiotown
-    sklearn >>  pip install sklearn
-    PyOD >> pip install pyod    
-    joblib >> pip install joblib
-    numpy >> pip install numpy
-    pandas >> pip install pandas 
+    sklearn >>   python3 -m pip install scikit-learn
+    PyOD >>  python3 -m pip install pyod    
+    joblib >>  python3 -m pip install joblib
+    numpy >>  python3 -m pip install numpy
+    pandas >>  python3 -m pip install pandas 
 ### Data
 Contains all the datasets that collected from sensor located in WicomAI LAB, Kookmin University
 ### model
