@@ -13,6 +13,8 @@ warnings.filterwarnings("ignore")
 counter_thtd = 1
 counter_fire = 1
 counter_tdhd = 1
+counter_wlvl = 1
+counter_wlak = 1
 
 #Thresholding value
 upper_thresh_temp = 40
@@ -29,6 +31,9 @@ lower_thresh_temp2 = 5
 
 upper_thresh_hum2 = 60
 lower_thresh_hum2 = 5
+
+upper_thresh_wlvl = 3500
+lower_thresh_wlvl = 250
 
 #Sliding window setting (depends on the data collection cycle)
 #in this case, data collection cyle is 1 minute
@@ -108,14 +113,56 @@ def train_tdhd(): #For retraining model & overwriting model tdhd sensor
     dump(model_hum2, 'model\model_hum1.joblib')
     dump(model_door, 'model\model_door.joblib')
 
+def train_wlvl(): #For retraining model & overwriting model wlvl sensor
+    global arr_sensor_waterlevel
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
+    model_wlvl = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    
+    #data preprocess
+    arr_sensor_wlvl = arr_sensor_wlvl.reshape(-1,1)
+
+    #model training
+    model_wlvl.fit(arr_sensor_wlvl)
+
+    #save model
+    dump(model_wlvl, 'model\model_waterlevel.joblib')
+
+def train_wlak(): #For retraining model & overwriting model wlak sensor
+    global arr_sensor_waterleak
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
+    model_wlak = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    
+    #data preprocess
+    arr_sensor_waterleak = arr_sensor_waterleak.reshape(-1,1)
+
+    #model training
+    model_wlak.fit(arr_sensor_waterleak)
+
+    #save model
+    dump(model_wlak, 'model\model_waterleak.joblib')
+
+
 def post_process(message):
     global arr_sensor_temp1, arr_sensor_hum1
     global arr_sensor_tempfire, arr_sensor_fire
     global arr_sensor_temp2, arr_sensor_hum2, arr_sensor_door
+    global arr_sensor_waterlevel, arr_sensor_waterleak
     global arr_sensor_hum2
     global counter_thtd, counter_fire, counter_tdhd
     global model_temp,model_hum
+    global model_temp2,model_hum2, model_door
     global model_tempfire,model_fire
+    global model_wlak, model_wlvl
 
     sensor_type = message['data']['dtype']
     if sensor_type == 'thtd':
@@ -366,6 +413,125 @@ def post_process(message):
         changedata['sensor_door_status'] = sensor_door_status
         changedata['sensor_door'] = float(sensor_door[0])
         changedata['anomaly_score_door'] = round(float(anomaly_score_door[0]),2)
+
+
+    elif sensor_type == 'wlvl':
+        sensor_wlvl = np.array([message['data']['val0']]).T
+
+        #input stream data to the window
+        arr_sensor_waterlevel = np.append(arr_sensor_waterlevel,sensor_wlvl)
+
+        if counter_wlvl == 1: #len(arr_sensor_temp1) == 1:
+            #mode 1: Using initial model
+            model_wlvl = load('model\model_waterlevel.joblib')
+            counter_wlvl += 1
+        
+        elif counter_wlvl <= train_number: #len(arr_sensor_temp1) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_wlvl += 1
+        
+        elif counter_wlvl == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_wlvl)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_wlvl += 1
+            thread.join()
+        
+        elif counter_wlvl == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+            #mode 4: load retrain model
+            model_wlvl = load('model\model_waterlevel.joblib')
+            counter_wlvl += 1
+
+        elif counter_wlvl < (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_wlvl += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_waterlevel =  arr_sensor_waterlevel[-(2*train_number+batch_size):] #[-train_number:]
+            counter_wlvl = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_wlvl = sensor_wlvl.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_wlvl =  model_wlvl.decision_function(newsensor_wlvl)
+        anomaly_sensor_wlvl = model_wlvl.predict(newsensor_wlvl)
+
+        #clustering between normal & abnormal
+        if anomaly_score_wlvl > 0 and float(sensor_wlvl[0]) > lower_thresh_wlvl and float(sensor_wlvl[0]) < upper_thresh_wlvl:
+            sensor_wlvl_status = 'normal'
+        else:
+            sensor_wlvl_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_waterlevel_status'] = sensor_wlvl_status
+        changedata['sensor_waterlevel'] = float(sensor_wlvl[0])
+        changedata['anomaly_score_waterlevel'] = round(float(anomaly_score_wlvl[0]),2)
+
+    elif sensor_type == 'wlak':
+        sensor_wlak = np.array([message['data']['val0']]).T
+
+        #input stream data to the window
+        arr_sensor_waterleak = np.append(arr_sensor_waterleak,sensor_wlak)
+
+        if counter_wlak == 1: #len(arr_sensor_temp1) == 1:
+            #mode 1: Using initial model
+            model_wlak = load('model\model_waterleak.joblib')
+            counter_wlak += 1
+        
+        elif counter_wlak <= train_number: #len(arr_sensor_temp1) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_wlak += 1
+        
+        elif counter_wlak == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_wlak)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_wlak += 1
+            thread.join()
+        
+        elif counter_wlak == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+            #mode 4: load retrain model
+            model_wlak = load('model\model_waterleak.joblib')
+            counter_wlak += 1
+
+        elif counter_wlak < (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_wlak += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_waterleak =  arr_sensor_waterleak[-(2*train_number+batch_size):] #[-train_number:]
+            counter_wlak = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_wlak = sensor_wlak.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_wlak =  model_wlak.decision_function(newsensor_wlak)
+        anomaly_sensor_wlak = model_wlak.predict(newsensor_wlak)
+
+        #clustering between normal & abnormal
+        if anomaly_score_wlak >= 0 and float(sensor_wlak[0]) == 0: #thresholding for binary sensor
+            sensor_wlak_status = 'normal'
+        else: #abnormal condition
+            sensor_wlak_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_waterleak_status'] = sensor_wlak_status
+        changedata['sensor_waterleak'] = float(sensor_wlak[0])
+        changedata['anomaly_score_waterleak'] = round(float(anomaly_score_wlak[0]),2)
 
     message['data'] = changedata
     return message
