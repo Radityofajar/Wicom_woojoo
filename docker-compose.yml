@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  wicom_woojoo:
+    container_name: wicom_woojoo
+    image: wicom_woojoo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    logging:
+      driver: "local"
+    volumes:
+      - ./model:/root/model
+    env_file:
+      - .env
+    command: python3 -u postproc_IF.py ${IOTOWN_URL} ${IOTOWN_USER} ${IOTOWN_TOKEN}
