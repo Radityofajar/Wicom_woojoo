@@ -153,6 +153,7 @@ def train_wlak(): #For retraining model & overwriting model wlak sensor
 
 
 def post_process(message):
+    print(message['data'])
     global arr_sensor_temp1, arr_sensor_hum1
     global arr_sensor_tempfire, arr_sensor_fire
     global arr_sensor_temp2, arr_sensor_hum2, arr_sensor_door
@@ -532,6 +533,9 @@ def post_process(message):
         changedata['sensor_waterleak_status'] = sensor_wlak_status
         changedata['sensor_waterleak'] = float(sensor_wlak[0])
         changedata['anomaly_score_waterleak'] = round(float(anomaly_score_wlak[0]),2)
+
+    else:
+        print('data not supported: train the initial model')
 
     message['data'] = changedata
     return message
