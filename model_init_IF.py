@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
 import time
-data_frame = pd.read_csv("alldata.csv")
+data_frame = pd.read_csv("data/alldata_new.csv")
 
 df_hum1 = np.array([data_frame['humidity1']]).T
 df_hum2 = np.array([data_frame['humidity2']]).T
@@ -18,7 +18,7 @@ df_door = np.array([data_frame['isclosed']]).T
 estimator = 100
 samples = 500
 randstate = 42
-outlier_fraction = 0.05
+outlier_fraction = 0.01
 
 model_hum1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
 model_hum2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
