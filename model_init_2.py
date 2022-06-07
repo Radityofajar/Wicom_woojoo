@@ -6,9 +6,9 @@ from pyod.models.mcd import MCD
 import time
 from sklearn.preprocessing import StandardScaler
 
-outliers_fraction = 0.08
+outliers_fraction = 0.04
 
-data_frame = pd.read_csv("alldata_new.csv")
+data_frame = pd.read_csv(("data/alldata_new.csv"))
 
 df_hum1 = np.array([data_frame['humidity1']]).T
 df_hum2 = np.array([data_frame['humidity2']]).T
