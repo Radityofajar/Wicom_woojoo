@@ -16,7 +16,7 @@ Contains initial models (temperature, humidity, waterlevel, waterleak, door, fir
 We have 3 different models' options for anomaly detection: **Isolation Forest (IForest)**, **Histogram- based outlier detection (HBOS)**, and **Minimum Covariance Determinant (MCD)**.
 ### postproc_IF.py
 This is the main program to run the anomaly detection based on Isolation Forest (IForest) using postprocess features by IoT.own Coxlab.
-(nb: flow_postproc.py is similar with postproc.py but more readable and easily modify)
+(nb: flow_postproc.py is similar with postproc_IF.py but more readable and easily modify)
 
   Step 1: Prepare the initial model using model_init_IF.py
   
