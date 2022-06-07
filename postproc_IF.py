@@ -40,7 +40,7 @@ def train(): # for retraining model & overwriting model
     estimator = 100
     samples = 500
     randstate = 42
-    outlier_fraction = 0.05
+    outlier_fraction = 0.01
     
     model_hum1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
     model_hum2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
