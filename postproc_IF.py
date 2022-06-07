@@ -218,48 +218,47 @@ def post_process(message):
     anomalies_door = model_door.predict(newdoor)
 
     #clustering between normal & abnormal
-    if anomalies_hum1 > 0 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
+    if anomaly_score_hum1 >= 0 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
         status_hum1 = 'normal'
     else:
         status_hum1 = 'abnormal'
     
-    if anomalies_hum2 > 0 and float(hum2[0]) > threshold_hum2_lower and float(hum2[0]) < threshold_hum2_upper:
+    if anomaly_score_hum2 >= 0 and float(hum2[0]) > threshold_hum2_lower and float(hum2[0]) < threshold_hum2_upper:
         status_hum2 = 'normal'
     else:
         status_hum2 = 'abnormal'
 
-    if anomalies_temp1 > 0 and float(temp1[0]) > threshold_temp1_lower and float(temp1[0]) < threshold_temp1_upper:
+    if anomaly_score_temp1 >= 0 and float(temp1[0]) > threshold_temp1_lower and float(temp1[0]) < threshold_temp1_upper:
         status_temp1 = 'normal'
     else:
         status_temp1 = 'abnormal'
 
-    if anomalies_temp2 > 0 and float(temp2[0]) > threshold_temp2_lower and float(temp2[0]) < threshold_temp2_upper:
+    if anomaly_score_temp2 >= 0 and float(temp2[0]) > threshold_temp2_lower and float(temp2[0]) < threshold_temp2_upper:
         status_temp2 = 'normal'
     else:
         status_temp2 = 'abnormal'
 
-    if anomalies_temp3 > 0 and float(temp3[0]) > threshold_temp3_lower and float(temp3[0]) < threshold_temp3_upper:
+    if anomaly_score_temp3 >= 0 and float(temp3[0]) > threshold_temp3_lower and float(temp3[0]) < threshold_temp3_upper:
         status_temp3 = 'normal'
     else:
         status_temp3 = 'abnormal'
 
-    if anomalies_waterlevel > 0 and float(water_level[0]) > threshold_waterlevel1 and float(water_level[0]) < threshold_waterlevel2:
+    if anomaly_score_waterlevel >= 0 and float(water_level[0]) > threshold_waterlevel1 and float(water_level[0]) < threshold_waterlevel2:
         status_waterlevel = 'normal'
     else:
         status_waterlevel = 'abnormal'
 
-    if anomalies_waterleak > 0 and float(water_leak[0]) == 0:#thresholding for binary sensor
+    if anomaly_score_waterleak >= 0 and float(water_leak[0]) == 0:#thresholding for binary sensor
         status_waterleak = 'normal'
     else:
         status_waterleak = 'abnormal/isflood'
     
-    if anomalies_fire > 0 and float(fire[0]) == 0: #thresholding for binary sensor
-        
+    if anomaly_score_fire >= 0 and float(fire[0]) == 0: #thresholding for binary sensor
         status_fire = 'normal'
     else:
         status_fire = 'abnormal/fire'
 
-    if anomalies_door > 0 and float(door[0]) == 0: #thresholding for binary sensor
+    if anomaly_score_door >= 0 and float(door[0]) == 0: #thresholding for binary sensor
         status_door = 'normal'
     else:
         status_door = 'abnormal/open'
