@@ -1,7 +1,7 @@
 #import all the library needed
 import numpy as np
 from pyiotown_wicom import postprocess
-#import pyiotown.post
+import pyiotown.post
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
 import threading
@@ -10,311 +10,551 @@ import sys
 
 warnings.filterwarnings("ignore")
 
-counter = 1
+counter_thtd = 1
+counter_fire = 1
+counter_tdhd = 1
+counter_wlvl = 1
+counter_wlak = 1
 
-#thresholding value
-threshold_waterlevel1 = 300
-threshold_waterlevel2 = 3500
-threshold_hum1_lower = 15
-threshold_hum1_upper = 55
-threshold_hum2_lower = 15
-threshold_hum2_upper = 55
-threshold_temp1_lower = 5
-threshold_temp1_upper = 40
-threshold_temp2_lower = 5
-threshold_temp2_upper = 40
-threshold_temp3_lower = 5
-threshold_temp3_upper = 40
+#Thresholding value
+upper_thresh_temp = 40
+lower_thresh_temp = 5
 
-#sliding window setting
+upper_thresh_hum = 60
+lower_thresh_hum = 5
+
+upper_thresh_tempfire = 40
+lower_thresh_tempfire = 5
+
+upper_thresh_temp2 = 40
+lower_thresh_temp2 = 5
+
+upper_thresh_hum2 = 60
+lower_thresh_hum2 = 5
+
+upper_thresh_wlvl = 3500
+lower_thresh_wlvl = 250
+
+#Sliding window setting (depends on the data collection cycle)
+#in this case, data collection cyle is 1 minute
 batch_size = 60 # 60 = 1 hour
 train_number = 1440 # 1440 = 1 day
 
-def train(): # for retraining model & overwriting model
-    global arr_hum1, arr_hum2
-    global arr_temp1, arr_temp2, arr_temp3
-    global arr_waterlevel, arr_waterleak
-    global arr_door, arr_fire
+def train_thtd(): #For retraining model & overwriting model thtd sensor
+    global arr_sensor_temp1, arr_sensor_hum1
 
     #model initialization
     estimator = 100
     samples = 500
     randstate = 42
     outlier_fraction = 0.01
-    
-    model_hum1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
-    model_hum2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
-    model_temp1 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_temp = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_hum = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+
+    #data preprocess
+    arr_sensor_temp1 = arr_sensor_temp1.reshape(-1,1)
+    arr_sensor_hum1 = arr_sensor_hum1.reshape(-1,1)
+
+    #model training
+    model_temp.fit(arr_sensor_temp1)
+    model_hum.fit(arr_sensor_hum1)
+
+    #save model
+    dump(model_temp, 'model\model_temp2.joblib')
+    dump(model_hum, 'model\model_hum2.joblib')
+
+def train_fire(): #For retraining model & overwriting model fire sensor
+    global arr_sensor_tempfire, arr_sensor_fire
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
+    model_tempfire = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    model_fire = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+
+    #data preprocess
+    arr_sensor_tempfire = arr_sensor_tempfire.reshape(-1,1)
+    arr_sensor_fire = arr_sensor_fire.reshape(-1,1)
+
+    #model training
+    model_tempfire.fit(arr_sensor_tempfire)
+    model_fire.fit(arr_sensor_fire)
+
+    #save model
+    dump(model_tempfire, 'model\model_temp3.joblib')
+    dump(model_fire, 'model\model_fire.joblib')
+
+def train_tdhd(): #For retraining model & overwriting model tdhd sensor
+    global arr_sensor_temp2, arr_sensor_hum2, arr_sensor_door
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
     model_temp2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
-    model_temp3 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
-    model_waterlevel = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
-    model_waterleak = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
-    model_fire = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
+    model_hum2 = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
     model_door = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=0.01)
     
     #data preprocess
-    arr_hum1 = arr_hum1.reshape(-1,1)
-    arr_hum2 = arr_hum2.reshape(-1,1)
-    arr_temp1 = arr_temp1.reshape(-1,1)
-    arr_temp2 = arr_temp2.reshape(-1,1)
-    arr_temp3 = arr_temp3.reshape(-1,1)
-    arr_waterlevel = arr_waterlevel.reshape(-1,1)
-    arr_waterleak = arr_waterleak.reshape(-1,1)
-    arr_fire = arr_fire.reshape(-1,1)
-    arr_door = arr_door.reshape(-1,1)
+    arr_sensor_temp2 = arr_sensor_temp2.reshape(-1,1)
+    arr_sensor_hum2 = arr_sensor_hum2.reshape(-1,1)
+    arr_sensor_door = arr_sensor_door.reshape(-1,1)
 
     #model training
-    model_hum1.fit(arr_hum1)
-    model_hum2.fit(arr_hum2)
-    model_temp1.fit(arr_temp1)
-    model_temp2.fit(arr_temp2)
-    model_temp3.fit(arr_temp3)
-    model_waterlevel.fit(arr_waterlevel)
-    model_waterleak.fit(arr_waterleak)
-    model_fire.fit(arr_fire)
-    model_door.fit(arr_door)
+    model_temp2.fit(arr_sensor_temp2)
+    model_hum2.fit(arr_sensor_hum2)
+    model_door.fit(arr_sensor_door)
 
-    #save/overwrite model
-    dump(model_hum1, 'model\model_hum1.joblib')
-    dump(model_hum2, 'model\model_hum2.joblib')
-    dump(model_temp1, 'model\model_temp1.joblib')
+    #save model
     dump(model_temp2, 'model\model_temp2.joblib')
-    dump(model_temp3, 'model\model_temp3.joblib')
-    dump(model_waterlevel, 'model\model_waterlevel.joblib')
-    dump(model_waterleak, 'model\model_waterleak.joblib')
-    dump(model_fire, 'model\model_fire.joblib')
+    dump(model_hum2, 'model\model_hum1.joblib')
     dump(model_door, 'model\model_door.joblib')
-    print('Retraining is done')
+
+def train_wlvl(): #For retraining model & overwriting model wlvl sensor
+    global arr_sensor_waterlevel
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
+    model_wlvl = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    
+    #data preprocess
+    arr_sensor_wlvl = arr_sensor_wlvl.reshape(-1,1)
+
+    #model training
+    model_wlvl.fit(arr_sensor_wlvl)
+
+    #save model
+    dump(model_wlvl, 'model\model_waterlevel.joblib')
+
+def train_wlak(): #For retraining model & overwriting model wlak sensor
+    global arr_sensor_waterleak
+
+    #model initialization
+    estimator = 100
+    samples = 500
+    randstate = 42
+    outlier_fraction = 0.01
+    model_wlak = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
+    
+    #data preprocess
+    arr_sensor_waterleak = arr_sensor_waterleak.reshape(-1,1)
+
+    #model training
+    model_wlak.fit(arr_sensor_waterleak)
+
+    #save model
+    dump(model_wlak, 'model\model_waterleak.joblib')
+
 
 def post_process(message):
+    print(message['data'])
+    global arr_sensor_temp1, arr_sensor_hum1
+    global arr_sensor_tempfire, arr_sensor_fire
+    global arr_sensor_temp2, arr_sensor_hum2, arr_sensor_door
+    global arr_sensor_waterlevel, arr_sensor_waterleak
+    global counter_thtd, counter_fire, counter_tdhd
+    global counter_wlak, counter_wlvl
+    global model_temp,model_hum
+    global model_temp2,model_hum2, model_door
+    global model_tempfire,model_fire
+    global model_wlak, model_wlvl
 
-    global arr_hum1, arr_hum2
-    global arr_temp1, arr_temp2, arr_temp3
-    global arr_waterlevel, arr_waterleak
-    global arr_door, arr_fire
-    global counter
-    global model_hum1, model_hum2
-    global model_temp1, model_temp2, model_temp3
-    global model_waterlevel, model_waterleak
-    global model_fire, model_door
-    
-    print(message)
-    
-    temp1 = np.array([message['data']['temp1']]).T
-    temp2 = np.array([message['data']['temp2']]).T
-    temp3 = np.array([message['data']['temp3']]).T
-    hum1 = np.array([message['data']['hum1']]).T
-    hum2 = np.array([message['data']['hum2']]).T
-    water_level = np.array([message['data']['water_level']]).T
-    water_leak = np.array([message['data']['water_leak']]).T
-    door = np.array([message['data']['door']]).T
-    fire = np.array([message['data']['fire']]).T
-    
-    print(counter)
+    sensor_type = message['data']['dype']
+    if sensor_type == 'thtd':
+        sensor_temp = np.array([message['data']['val0']]).T
+        sensor_hum = np.array([message['data']['val1']]).T
 
-    if counter == 1: #Using Initial model for the mode 1 & 2
-        print("mode1")
-        model_hum1 = load("model\model_hum1.joblib")
-        model_hum2 = load("model\model_hum2.joblib")
-        model_temp1 = load("model\model_temp1.joblib")
-        model_temp2 = load("model\model_temp2.joblib")
-        model_temp3 = load("model\model_temp3.joblib")
-        model_waterlevel = load("model\model_waterlevel.joblib")
-        model_waterleak = load("model\model_waterleak.joblib")
-        model_fire = load("model\model_fire.joblib")
-        model_door = load("model\model_door.joblib")
-        counter +=1  
+        #input stream data to the window
+        arr_sensor_temp1 = np.append(arr_sensor_temp1,sensor_temp)
+        arr_sensor_hum1 = np.append(arr_sensor_hum1,sensor_hum)
 
-    elif counter<=train_number: 
-        #keep using initial model until the data stored in array is enough
-        print("mode2")
-        counter +=1   
+        if counter_thtd == 1: #len(arr_sensor_temp1) == 1:
+            #mode 1: Using initial model
+            model_temp = load('model\model_temp2.joblib')
+            model_hum = load('model\model_hum2.joblib')
+            counter_thtd += 1
+        
+        elif counter_thtd <= train_number: #len(arr_sensor_temp1) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_thtd += 1
+        
+        elif counter_thtd == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_thtd)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_thtd += 1
+            thread.join()
+        
+        elif counter_thtd == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+            #mode 4: load retrain model
+            model_temp = load('model\model_temp2.joblib')
+            model_hum = load('model\model_hum2.joblib')
+            counter_thtd += 1
 
-    elif counter == (train_number+1) : 
-        #retrain the  model
-        thread = threading.Thread(target=train)
-        print("mode3:retrain")
-        print(thread.is_alive())
-        if thread.is_alive():
-            print('thread still running')          
+        elif counter_thtd <= (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_thtd += 1
+
         else:
-            print('thread is starting')
-            thread.start()
-        counter += 1
-        thread.join()    
-    
-    elif counter == (train_number+2):
-        print("mode4:load retrain model")
-        model_hum1 = load("model\model_hum1.joblib")
-        model_hum2 = load("model\model_hum2.joblib")
-        model_temp1 = load("model\model_temp1.joblib")
-        model_temp2 = load("model\model_temp2.joblib")
-        model_temp3 = load("model\model_temp3.joblib")
-        model_waterlevel = load("model\model_waterlevel.joblib")
-        model_waterleak = load("model\model_waterleak.joblib")
-        model_fire = load("model\model_fire.joblib")
-        model_door = load("model\model_door.joblib")
-        counter += 1
+            #optimize the array size of sliding window
+            arr_sensor_temp1 =  arr_sensor_temp1[-(2*train_number+batch_size):] #[-train_number:]
+            arr_sensor_hum1 =  arr_sensor_hum1[-(2*train_number+batch_size):] #[-train_number:]
+            counter_thtd = (train_number+1)
 
-    elif counter < (train_number + batch_size): 
-        #sliding window method
-        print("mode5")
-        counter +=1
-    
-    else: #optimize the array size of the sliding window
-        counter = (train_number+1)
-        print("mode6:optimize array size")
-        arr_hum1 = arr_hum1[-train_number:]
-        arr_hum2 = arr_hum2[-train_number:]
-        arr_temp1 = arr_temp1[-train_number:]
-        arr_temp2 = arr_temp2[-train_number:]
-        arr_temp3 = arr_temp3[-train_number:]
-        arr_waterlevel = arr_waterlevel[-train_number:]
-        arr_waterleak = arr_waterleak[-train_number:]
-        arr_fire = arr_fire[-train_number:]
-        arr_door = arr_door[-train_number:]
+        #preprocess the data for anomaly detection
+        newsensor_temp = sensor_temp.reshape(1,-1)
+        newsensor_hum = sensor_hum.reshape(1,-1)
 
-    #input data to the window
-    arr_hum1 = np.append(arr_hum1,hum1)
-    arr_hum2 = np.append(arr_hum2,hum2)
-    arr_temp1 = np.append(arr_temp1,temp1)
-    arr_temp2 = np.append(arr_temp2,temp2)
-    arr_temp3 = np.append(arr_temp3,temp3)
-    arr_waterlevel = np.append(arr_waterlevel,water_level)
-    arr_waterleak = np.append(arr_waterleak,water_leak)
-    arr_fire = np.append(arr_fire,fire)
-    arr_door = np.append(arr_door,door)
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_temp =  model_temp.decision_function(newsensor_temp)
+        anomaly_sensor_temp = model_temp.predict(newsensor_temp)
 
-    #preprocess the data for anomaly detection
-    newhum1 = hum1.reshape(1,-1)
-    newhum2 = hum2.reshape(1,-1)
-    newtemp1 = temp1.reshape(1,-1)
-    newtemp2 = temp2.reshape(1,-1)
-    newtemp3 = temp3.reshape(1,-1)
-    newwater_level = water_level.reshape(1,-1)
-    newwater_leak = water_leak.reshape(1,-1)
-    newfire = fire.reshape(1,-1)
-    newdoor = door.reshape(1,-1)
-    
-    #anomaly detection / Isolation Forest Prediction
-    anomaly_score_hum1 = model_hum1.decision_function(newhum1)
-    anomaly_score_hum2 = model_hum2.decision_function(newhum2)
-    anomaly_score_temp1 = model_temp1.decision_function(newtemp1)
-    anomaly_score_temp2 = model_temp2.decision_function(newtemp2)
-    anomaly_score_temp3 = model_temp3.decision_function(newtemp3)
-    anomaly_score_waterlevel = model_waterlevel.decision_function(newwater_level)
-    anomaly_score_waterleak = model_waterleak.decision_function(newwater_leak)
-    anomaly_score_fire = model_fire.decision_function(newfire)
-    anomaly_score_door = model_door.decision_function(newdoor)
+        anomaly_score_hum =  model_hum.decision_function(newsensor_hum)
+        anomaly_sensor_hum = model_hum.predict(newsensor_hum)
 
-    anomalies_hum1 = model_hum1.predict(newhum1)
-    anomalies_hum2 = model_hum2.predict(newhum2)
-    anomalies_temp1 = model_temp1.predict(newtemp1)
-    anomalies_temp2 = model_temp2.predict(newtemp2)
-    anomalies_temp3 = model_temp3.predict(newtemp3)
-    anomalies_waterlevel = model_waterlevel.predict(newwater_level)
-    anomalies_waterleak = model_waterleak.predict(newwater_leak)
-    anomalies_fire = model_fire.predict(newfire)
-    anomalies_door = model_door.predict(newdoor)
+        #clustering between normal & abnormal
+        if anomaly_score_temp >= -0.15 and float(sensor_temp[0]) > lower_thresh_temp and float(sensor_temp[0]) < upper_thresh_temp : #normal condition
+            sensor_temp_status = 'normal'
+        else: #abnormal condition
+            sensor_temp_status = 'abnormal'
 
-    #clustering between normal & abnormal
-    if anomaly_score_hum1 >= -0.15 and float(hum1[0]) > threshold_hum1_lower and float(hum1[0]) < threshold_hum1_upper:
-        status_hum1 = 'normal'
+        if anomaly_score_hum >= -0.15 and float(sensor_hum[0]) > lower_thresh_hum and float(sensor_hum[0]) < upper_thresh_hum: #normal condition
+            sensor_hum_status = 'normal'
+        else: #abnormal condition
+            sensor_hum_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_temp_status'] = sensor_temp_status
+        changedata['sensor_temp'] = float(sensor_temp[0])
+        changedata['anomaly_score_temp'] = round(float(anomaly_score_temp[0]),2)
+
+        changedata['sensor_hum_status'] = sensor_hum_status
+        changedata['sensor_hum'] = float(sensor_hum[0])
+        changedata['anomaly_score_hum'] = round(float(anomaly_score_hum[0]),2)
+
+    elif sensor_type == 'fire':
+        sensor_fire = np.array([message['data']['val0']]).T
+        sensor_tempfire = np.array([message['data']['val1']]).T
+
+        #input stream data to the window
+        arr_sensor_fire = np.append(arr_sensor_fire,sensor_fire)
+        arr_sensor_tempfire = np.append(arr_sensor_tempfire,sensor_tempfire)
+
+        if counter_fire == 1: #len(arr_sensor_fire) == 1:
+            #mode 1: Using initial model
+            model_fire = load('model\model_fire.joblib')
+            model_tempfire = load('model\model_temp3.joblib')
+            counter_fire += 1
+        
+        elif counter_fire <= train_number: #len(arr_sensor_fire) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_fire += 1
+        
+        elif counter_fire == (train_number + 1) : #len(arr_sensor_fire) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_fire)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_fire += 1
+            thread.join()
+        
+        elif counter_fire == (train_number+2): #len(arr_sensor_fire) == (train_number+2):
+            #mode 4: load retrain model
+            model_fire = load('model\model_fire.joblib')
+            model_tempfire = load('model\model_temp3.joblib')
+            counter_fire += 1
+
+        elif counter_fire <= (train_number + batch_size): #len(arr_sensor_fire) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_fire += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_fire =  arr_sensor_fire[-(2*train_number+batch_size):] #[-train_number:]
+            arr_sensor_tempfire =  arr_sensor_tempfire[-(2*train_number+batch_size):] #[-train_number:]
+            counter_fire = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_fire = sensor_fire.reshape(1,-1)
+        newsensor_tempfire = sensor_tempfire.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_tempfire =  model_tempfire.decision_function(newsensor_tempfire)
+        anomaly_sensor_tempfire = model_tempfire.predict(newsensor_tempfire)
+
+        anomaly_score_fire =  model_fire.decision_function(newsensor_fire)
+        anomaly_sensor_fire = model_fire.predict(newsensor_fire)
+
+        #clustering between normal & abnormal
+        if anomaly_score_tempfire >= -0.15 and float(sensor_tempfire[0]) > lower_thresh_tempfire and float(sensor_tempfire[0]) < upper_thresh_tempfire : #normal condition
+            sensor_tempfire_status = 'normal'
+        else: #abnormal condition
+            sensor_tempfire_status = 'abnormal'
+
+        if anomaly_score_fire >= 0 and float(sensor_fire[0]) == 0: #normal condition
+            sensor_fire_status = 'normal'
+        else: #abnormal condition
+            sensor_fire_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_tempfire_status'] = sensor_tempfire_status
+        changedata['sensor_tempfire'] = float(sensor_tempfire[0])
+        changedata['anomaly_score_tempfire'] = round(float(anomaly_score_tempfire[0]),2)
+
+        changedata['sensor_fire_status'] = sensor_fire_status
+        changedata['sensor_fire'] = float(sensor_fire[0])
+        changedata['anomaly_score_fire'] = round(float(anomaly_score_fire[0]),2)
+
+    elif sensor_type == 'tdhd':
+        sensor_temp2 = np.array([message['data']['val0']]).T
+        sensor_hum2 = np.array([message['data']['val1']]).T
+        sensor_door = np.array([message['data']['val2']]).T
+
+        #input stream data to the window
+        arr_sensor_temp2 = np.append(arr_sensor_temp2,sensor_temp2)
+        arr_sensor_hum2 = np.append(arr_sensor_hum2,sensor_hum2)
+        arr_sensor_door = np.append(arr_sensor_door,sensor_door)
+
+        if counter_tdhd == 1: #len(arr_sensor_temp2) == 1:
+            #mode 1: Using initial model
+            model_temp2 = load('model\model_temp2.joblib')
+            model_hum2 = load('model\model_hum1.joblib')
+            model_door = load('model\model_door.joblib')
+            counter_tdhd += 1
+        
+        elif counter_tdhd <= train_number: #len(arr_sensor_temp2) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_tdhd += 1
+        
+        elif counter_tdhd == (train_number + 1) : #len(arr_sensor_temp2) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_tdhd)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_tdhd += 1
+            thread.join()
+        
+        elif counter_tdhd == (train_number+2): #len(arr_sensor_temp2) == (train_number+2):
+            #mode 4: load retrain model
+            model_temp2 = load('model\model_temp2.joblib')
+            model_hum2 = load('model\model_hum1.joblib')
+            model_door = load('model\model_door.joblib')
+            counter_tdhd += 1
+
+        elif counter_tdhd <= (train_number + batch_size): #len(arr_sensor_temp2) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_tdhd += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_temp2 =  arr_sensor_temp2[-(2*train_number+batch_size):] #[-train_number:]
+            arr_sensor_hum2 =  arr_sensor_hum2[-(2*train_number+batch_size):] #[-train_number:]
+            arr_sensor_door =  arr_sensor_door[-(2*train_number+batch_size):] #[-train_number:]
+            counter_tdhd = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_temp2 = sensor_temp2.reshape(1,-1)
+        newsensor_hum2 = sensor_hum2.reshape(1,-1)
+        newsensor_door = sensor_door.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_temp2 =  model_temp2.decision_function(newsensor_temp2)
+        anomaly_sensor_temp2 = model_temp2.predict(newsensor_temp2)
+
+        anomaly_score_hum2 =  model_hum2.decision_function(newsensor_hum2)
+        anomaly_sensor_hum2 = model_hum2.predict(newsensor_hum2)
+
+        anomaly_score_door =  model_door.decision_function(newsensor_door)
+        anomaly_sensor_door = model_door.predict(newsensor_door)
+
+        #clustering between normal & abnormal
+        if anomaly_score_temp2 >= -0.15 and float(sensor_temp2[0]) > lower_thresh_temp2 and float(sensor_temp2[0]) < upper_thresh_temp2 : #normal condition
+            sensor_temp2_status = 'normal'
+        else: #abnormal condition
+            sensor_temp2_status = 'abnormal'
+
+        if anomaly_score_hum2 >= -0.15 and float(sensor_hum2[0]) > lower_thresh_hum2 and float(sensor_hum2[0]) < upper_thresh_hum2: #normal condition
+            sensor_hum2_status = 'normal'
+        else: #abnormal condition
+            sensor_hum2_status = 'abnormal'
+        
+        if anomaly_score_door >= 0 and float(sensor_door[0]) == 0: #thresholding for binary sensor
+            sensor_door_status = 'normal'
+        else: #abnormal condition
+            sensor_door_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_temp2_status'] = sensor_temp2_status
+        changedata['sensor_temp2'] = float(sensor_temp2[0])
+        changedata['anomaly_score_temp2'] = round(float(anomaly_score_temp2[0]),2)
+
+        changedata['sensor_hum2_status'] = sensor_hum2_status
+        changedata['sensor_hum2'] = float(sensor_hum2[0])
+        changedata['anomaly_score_hum2'] = round(float(anomaly_score_hum2[0]),2)
+
+        changedata['sensor_door_status'] = sensor_door_status
+        changedata['sensor_door'] = float(sensor_door[0])
+        changedata['anomaly_score_door'] = round(float(anomaly_score_door[0]),2)
+
+
+    elif sensor_type == 'wlvl':
+        sensor_wlvl = np.array([message['data']['val0']]).T
+
+        #input stream data to the window
+        arr_sensor_waterlevel = np.append(arr_sensor_waterlevel,sensor_wlvl)
+
+        if counter_wlvl == 1: #len(arr_sensor_waterlevel) == 1:
+            #mode 1: Using initial model
+            model_wlvl = load('model\model_waterlevel.joblib')
+            counter_wlvl += 1
+        
+        elif counter_wlvl <= train_number: #len(arr_sensor_waterlevel) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_wlvl += 1
+        
+        elif counter_wlvl == (train_number + 1) : #len(arr_sensor_waterlevel) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_wlvl)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_wlvl += 1
+            thread.join()
+        
+        elif counter_wlvl == (train_number+2): #len(arr_sensor_waterlevel) == (train_number+2):
+            #mode 4: load retrain model
+            model_wlvl = load('model\model_waterlevel.joblib')
+            counter_wlvl += 1
+
+        elif counter_wlvl < (train_number + batch_size): #len(arr_sensor_waterlevel) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_wlvl += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_waterlevel =  arr_sensor_waterlevel[-(2*train_number+batch_size):] #[-train_number:]
+            counter_wlvl = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_wlvl = sensor_wlvl.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_wlvl =  model_wlvl.decision_function(newsensor_wlvl)
+        anomaly_sensor_wlvl = model_wlvl.predict(newsensor_wlvl)
+
+        #clustering between normal & abnormal
+        if anomaly_score_wlvl > 0 and float(sensor_wlvl[0]) > lower_thresh_wlvl and float(sensor_wlvl[0]) < upper_thresh_wlvl:
+            sensor_wlvl_status = 'normal'
+        else:
+            sensor_wlvl_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_waterlevel_status'] = sensor_wlvl_status
+        changedata['sensor_waterlevel'] = float(sensor_wlvl[0])
+        changedata['anomaly_score_waterlevel'] = round(float(anomaly_score_wlvl[0]),2)
+
+    elif sensor_type == 'wlak':
+        sensor_wlak = np.array([message['data']['val0']]).T
+
+        #input stream data to the window
+        arr_sensor_waterleak = np.append(arr_sensor_waterleak,sensor_wlak)
+
+        if counter_wlak == 1: #len(arr_sensor_waterleak) == 1:
+            #mode 1: Using initial model
+            model_wlak = load('model\model_waterleak.joblib')
+            counter_wlak += 1
+        
+        elif counter_wlak <= train_number: #len(arr_sensor_waterleak) <= train_number:
+            #mode 2: Keep using initial model until the data stored in array(window) is enough
+            counter_wlak += 1
+        
+        elif counter_wlak == (train_number + 1) : #len(arr_sensor_waterleak) == (train_number+1):
+            #mode 3: retrain the model
+            thread = threading.Thread(target=train_wlak)
+            if thread.is_alive():
+                print('thread still running')          
+            else:
+                print('thread is starting')
+                thread.start()
+            counter_wlak += 1
+            thread.join()
+        
+        elif counter_wlak == (train_number+2): #len(arr_sensor_waterleak) == (train_number+2):
+            #mode 4: load retrain model
+            model_wlak = load('model\model_waterleak.joblib')
+            counter_wlak += 1
+
+        elif counter_wlak < (train_number + batch_size): #len(arr_sensor_waterleak) <= (train_number + batch_size):
+            #mode 5: sliding window method
+            counter_wlak += 1
+
+        else:
+            #optimize the array size of sliding window
+            arr_sensor_waterleak =  arr_sensor_waterleak[-(2*train_number+batch_size):] #[-train_number:]
+            counter_wlak = (train_number+1)
+
+        #preprocess the data for anomaly detection
+        newsensor_wlak = sensor_wlak.reshape(1,-1)
+
+        #anomaly detection / Isolation Forest Prediction
+        anomaly_score_wlak =  model_wlak.decision_function(newsensor_wlak)
+        anomaly_sensor_wlak = model_wlak.predict(newsensor_wlak)
+
+        #clustering between normal & abnormal
+        if anomaly_score_wlak >= 0 and float(sensor_wlak[0]) == 0: #thresholding for binary sensor
+            sensor_wlak_status = 'normal'
+        else: #abnormal condition
+            sensor_wlak_status = 'abnormal'
+
+        #Store the data in order to send it back to IoT.own
+        changedata = {}
+        changedata['sensor_waterleak_status'] = sensor_wlak_status
+        changedata['sensor_waterleak'] = float(sensor_wlak[0])
+        changedata['anomaly_score_waterleak'] = round(float(anomaly_score_wlak[0]),2)
+
     else:
-        status_hum1 = 'abnormal'
-    
-    if anomaly_score_hum2 >= -0.15 and float(hum2[0]) > threshold_hum2_lower and float(hum2[0]) < threshold_hum2_upper:
-        status_hum2 = 'normal'
-    else:
-        status_hum2 = 'abnormal'
+        print('data not supported: train the initial model')
 
-    if anomaly_score_temp1 >= -0.15 and float(temp1[0]) > threshold_temp1_lower and float(temp1[0]) < threshold_temp1_upper:
-        status_temp1 = 'normal'
-    else:
-        status_temp1 = 'abnormal'
-
-    if anomaly_score_temp2 >= -0.15 and float(temp2[0]) > threshold_temp2_lower and float(temp2[0]) < threshold_temp2_upper:
-        status_temp2 = 'normal'
-    else:
-        status_temp2 = 'abnormal'
-
-    if anomaly_score_temp3 >= -0.15 and float(temp3[0]) > threshold_temp3_lower and float(temp3[0]) < threshold_temp3_upper:
-        status_temp3 = 'normal'
-    else:
-        status_temp3 = 'abnormal'
-
-    if anomaly_score_waterlevel >= -0.15 and float(water_level[0]) > threshold_waterlevel1 and float(water_level[0]) < threshold_waterlevel2:
-        status_waterlevel = 'normal'
-    else:
-        status_waterlevel = 'abnormal'
-
-    if anomaly_score_waterleak >= 0 and float(water_leak[0]) == 0:#thresholding for binary sensor
-        status_waterleak = 'normal'
-    else:
-        status_waterleak = 'abnormal/isflood'
-    
-    if anomaly_score_fire >= 0 and float(fire[0]) == 0: #thresholding for binary sensor
-        status_fire = 'normal'
-    else:
-        status_fire = 'abnormal/fire'
-
-    if anomaly_score_door >= 0 and float(door[0]) == 0: #thresholding for binary sensor
-        status_door = 'normal'
-    else:
-        status_door = 'abnormal/open'
-
-    changedata = {}
-
-    #store the data in order to send it back to IoT.own
-    changedata['status_temp1'] = status_temp1
-    changedata['status_temp2'] = status_temp2
-    changedata['status_temp3'] = status_temp3
-    changedata['status_hum1'] = status_hum1
-    changedata['status_hum2'] = status_hum2
-    changedata['status_water_level'] = status_waterlevel
-    changedata['status_water_leak'] = status_waterleak
-    changedata['status_door'] = status_door
-    changedata['status_fire'] = status_fire
-
-    changedata['temp1'] = float(temp1[0])
-    changedata['temp2'] = float(temp2[0])
-    changedata['temp3'] = float(temp3[0])
-    changedata['hum1'] = float(hum1[0])
-    changedata['hum2'] = float(hum2[0])
-    changedata['water_level'] = float(water_level[0])
-    changedata['water_leak'] = float(water_leak[0])
-    changedata['door'] = float(door[0])
-    changedata['fire'] = float(fire[0])
-    
-    changedata['anomaly_score_temp1'] = round(float(anomaly_score_temp1[0]),2)
-    changedata['anomaly_score_temp2'] = round(float(anomaly_score_temp2[0]),2)
-    changedata['anomaly_score_temp3'] = round(float(anomaly_score_temp3[0]),2)
-    changedata['anomaly_score_hum1'] = round(float(anomaly_score_hum1[0]),2)
-    changedata['anomaly_score_hum2'] = round(float(anomaly_score_hum2[0]),2)
-    changedata['anomaly_score_waterlevel'] = round(float(anomaly_score_waterlevel[0]),2)
-    changedata['anomaly_score_waterleak'] = round(float(anomaly_score_waterleak[0]),2)
-    changedata['anomaly_score_door'] = round(float(anomaly_score_door[0]),2)
-    changedata['anomaly_score_fire'] = round(float(anomaly_score_fire[0]),2)
- 
     message['data'] = changedata
-    print(changedata)
     return message
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         print(f"Usage: {sys.argv[0]} [URL] [name] [token]")
         exit(1)
-        
-    arr_hum1 = np.array([[]])
-    arr_hum2 = np.array([[]])
-    arr_temp1 = np.array([[]])
-    arr_temp2 = np.array([[]])
-    arr_temp3 = np.array([[]])
-    arr_waterlevel = np.array([[]])
-    arr_waterleak = np.array([[]])
-    arr_door = np.array([[]])
-    arr_fire = np.array([[]])
-    postproc_name = 'PostProcessExample3'
+    arr_sensor_temp1 = np.array([[]]) #thtd
+    arr_sensor_hum1 = np.array([[]]) #thtd
+    arr_sensor_temp2 = np.array([[]]) #tdhd
+    arr_sensor_hum2 = np.array([[]]) #tdhd
+    arr_sensor_door = np.array([[]]) #tdhd
+    arr_sensor_fire = np.array([[]]) #fire
+    arr_sensor_tempfire = np.array([[]]) #fire
+    arr_sensor_waterlevel = np.array([[]]) #wlvl
+    arr_sensor_waterleak = np.array([[]]) #wlak
+    postproc_name = 'post_process name'
     url = sys.argv[1]
     username = sys.argv[2]
     password = sys.argv[3]
