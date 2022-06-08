@@ -165,7 +165,7 @@ def post_process(message):
     global model_tempfire,model_fire
     global model_wlak, model_wlvl
 
-    sensor_type = message['data']['dtype']
+    sensor_type = message['data']['dype']
     if sensor_type == 'thtd':
         sensor_temp = np.array([message['data']['val0']]).T
         sensor_hum = np.array([message['data']['val1']]).T
