@@ -158,8 +158,8 @@ def post_process(message):
     global arr_sensor_tempfire, arr_sensor_fire
     global arr_sensor_temp2, arr_sensor_hum2, arr_sensor_door
     global arr_sensor_waterlevel, arr_sensor_waterleak
-    global arr_sensor_hum2
     global counter_thtd, counter_fire, counter_tdhd
+    global counter_wlak, counter_wlvl
     global model_temp,model_hum
     global model_temp2,model_hum2, model_door
     global model_tempfire,model_fire
@@ -272,13 +272,13 @@ def post_process(message):
             counter_fire += 1
             thread.join()
         
-        elif counter_fire == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+        elif counter_fire == (train_number+2): #len(arr_sensor_fire) == (train_number+2):
             #mode 4: load retrain model
             model_fire = load('model\model_fire.joblib')
             model_tempfire = load('model\model_temp3.joblib')
             counter_fire += 1
 
-        elif counter_fire <= (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+        elif counter_fire <= (train_number + batch_size): #len(arr_sensor_fire) <= (train_number + batch_size):
             #mode 5: sliding window method
             counter_fire += 1
 
@@ -330,18 +330,18 @@ def post_process(message):
         arr_sensor_hum2 = np.append(arr_sensor_hum2,sensor_hum2)
         arr_sensor_door = np.append(arr_sensor_door,sensor_door)
 
-        if counter_tdhd == 1: #len(arr_sensor_temp1) == 1:
+        if counter_tdhd == 1: #len(arr_sensor_temp2) == 1:
             #mode 1: Using initial model
             model_temp2 = load('model\model_temp2.joblib')
             model_hum2 = load('model\model_hum1.joblib')
             model_door = load('model\model_door.joblib')
             counter_tdhd += 1
         
-        elif counter_tdhd <= train_number: #len(arr_sensor_temp1) <= train_number:
+        elif counter_tdhd <= train_number: #len(arr_sensor_temp2) <= train_number:
             #mode 2: Keep using initial model until the data stored in array(window) is enough
             counter_tdhd += 1
         
-        elif counter_tdhd == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+        elif counter_tdhd == (train_number + 1) : #len(arr_sensor_temp2) == (train_number+1):
             #mode 3: retrain the model
             thread = threading.Thread(target=train_tdhd)
             if thread.is_alive():
@@ -352,14 +352,14 @@ def post_process(message):
             counter_tdhd += 1
             thread.join()
         
-        elif counter_tdhd == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+        elif counter_tdhd == (train_number+2): #len(arr_sensor_temp2) == (train_number+2):
             #mode 4: load retrain model
             model_temp2 = load('model\model_temp2.joblib')
             model_hum2 = load('model\model_hum1.joblib')
             model_door = load('model\model_door.joblib')
             counter_tdhd += 1
 
-        elif counter_tdhd <= (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+        elif counter_tdhd <= (train_number + batch_size): #len(arr_sensor_temp2) <= (train_number + batch_size):
             #mode 5: sliding window method
             counter_tdhd += 1
 
@@ -422,16 +422,16 @@ def post_process(message):
         #input stream data to the window
         arr_sensor_waterlevel = np.append(arr_sensor_waterlevel,sensor_wlvl)
 
-        if counter_wlvl == 1: #len(arr_sensor_temp1) == 1:
+        if counter_wlvl == 1: #len(arr_sensor_waterlevel) == 1:
             #mode 1: Using initial model
             model_wlvl = load('model\model_waterlevel.joblib')
             counter_wlvl += 1
         
-        elif counter_wlvl <= train_number: #len(arr_sensor_temp1) <= train_number:
+        elif counter_wlvl <= train_number: #len(arr_sensor_waterlevel) <= train_number:
             #mode 2: Keep using initial model until the data stored in array(window) is enough
             counter_wlvl += 1
         
-        elif counter_wlvl == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+        elif counter_wlvl == (train_number + 1) : #len(arr_sensor_waterlevel) == (train_number+1):
             #mode 3: retrain the model
             thread = threading.Thread(target=train_wlvl)
             if thread.is_alive():
@@ -442,12 +442,12 @@ def post_process(message):
             counter_wlvl += 1
             thread.join()
         
-        elif counter_wlvl == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+        elif counter_wlvl == (train_number+2): #len(arr_sensor_waterlevel) == (train_number+2):
             #mode 4: load retrain model
             model_wlvl = load('model\model_waterlevel.joblib')
             counter_wlvl += 1
 
-        elif counter_wlvl < (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+        elif counter_wlvl < (train_number + batch_size): #len(arr_sensor_waterlevel) <= (train_number + batch_size):
             #mode 5: sliding window method
             counter_wlvl += 1
 
@@ -481,16 +481,16 @@ def post_process(message):
         #input stream data to the window
         arr_sensor_waterleak = np.append(arr_sensor_waterleak,sensor_wlak)
 
-        if counter_wlak == 1: #len(arr_sensor_temp1) == 1:
+        if counter_wlak == 1: #len(arr_sensor_waterleak) == 1:
             #mode 1: Using initial model
             model_wlak = load('model\model_waterleak.joblib')
             counter_wlak += 1
         
-        elif counter_wlak <= train_number: #len(arr_sensor_temp1) <= train_number:
+        elif counter_wlak <= train_number: #len(arr_sensor_waterleak) <= train_number:
             #mode 2: Keep using initial model until the data stored in array(window) is enough
             counter_wlak += 1
         
-        elif counter_wlak == (train_number + 1) : #len(arr_sensor_temp1) == (train_number+1):
+        elif counter_wlak == (train_number + 1) : #len(arr_sensor_waterleak) == (train_number+1):
             #mode 3: retrain the model
             thread = threading.Thread(target=train_wlak)
             if thread.is_alive():
@@ -501,12 +501,12 @@ def post_process(message):
             counter_wlak += 1
             thread.join()
         
-        elif counter_wlak == (train_number+2): #len(arr_sensor_temp1) == (train_number+2):
+        elif counter_wlak == (train_number+2): #len(arr_sensor_waterleak) == (train_number+2):
             #mode 4: load retrain model
             model_wlak = load('model\model_waterleak.joblib')
             counter_wlak += 1
 
-        elif counter_wlak < (train_number + batch_size): #len(arr_sensor_temp1) <= (train_number + batch_size):
+        elif counter_wlak < (train_number + batch_size): #len(arr_sensor_waterleak) <= (train_number + batch_size):
             #mode 5: sliding window method
             counter_wlak += 1
 
