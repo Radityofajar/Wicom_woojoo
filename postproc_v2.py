@@ -556,7 +556,7 @@ if __name__ == '__main__':
     arr_sensor_tempfire = np.array([[]]) #fire
     arr_sensor_waterlevel = np.array([[]]) #wlvl
     arr_sensor_waterleak = np.array([[]]) #wlak
-    postproc_name = 'post_process name'
+    postproc_name = 'postprocess_name'
     url = sys.argv[1]
     username = sys.argv[2]
     password = sys.argv[3]
