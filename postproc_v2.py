@@ -536,8 +536,10 @@ def post_process(message):
 
     else:
         print('data not supported: train the initial model')
+        changedata = message['data']
 
     message['data'] = changedata
+    print(changedata)
     return message
 
 
