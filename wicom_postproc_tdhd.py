@@ -333,11 +333,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 15:
         print(f"Usage: {sys.argv[0]} [URL] [name] [token] [low_threshVal0] [up_threshVal0] [low_threshVal1] [up_thresVal1] [door NC/NO] [batchsize] [train_number] [outlier_fraction] [anomaly_threshVal0] [anomaly_threshVal1]")
         exit(1)
-
-    #initialize array
-    arr_temp = np.array([[]])
-    arr_hum = np.array([[]])
-
+        
     #IoT.own setting
     postproc_name = 'tdhd'
     url = sys.argv[1]
