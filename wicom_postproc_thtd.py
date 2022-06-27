@@ -242,14 +242,14 @@ def post_process(rawdata):
 
         #clustering between normal & abnormal
         #temperature sensor
-        if anomaly_score_temp >= anomaly_threshVal0 and float(sensor_temp[0]) > threshold_temp1_lower and float(sensor_temp[0]) < threshold_temp1_higher:
+        if anomaly_score_temp > anomaly_threshVal0 and float(sensor_temp[0]) > threshold_temp1_lower and float(sensor_temp[0]) < threshold_temp1_higher:
             #normal condition
             sensor_temp_status = 'normal'
         else:
             #abnormal condition
             sensor_temp_status = 'abnormal'
         #humidity sensor
-        if anomaly_score_hum >= anomaly_threshVal1 and float(sensor_hum[0]) > threshold_hum1_lower and float(sensor_hum[0]) < threshold_hum1_higher:
+        if anomaly_score_hum > anomaly_threshVal1 and float(sensor_hum[0]) > threshold_hum1_lower and float(sensor_hum[0]) < threshold_hum1_higher:
             #normal condition
             sensor_hum_status = 'normal'
         else:
