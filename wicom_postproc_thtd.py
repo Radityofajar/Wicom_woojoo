@@ -154,8 +154,8 @@ def post_process(rawdata):
             #calculate the outlier fraction
             outlier1 = Counter(nid_library['anomaly_status']) #temp
             outlier2 = Counter(nid_library_2['anomaly_status']) #hum
-            outlier_fraction1 = outlier1['abnormal'] / len(nid_library['anomaly_score']) #temp
-            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2['anomaly_score']) #hum
+            outlier_fraction1 = outlier1['abnormal'] / len(nid_library['anomaly_status']) #temp
+            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2['anomaly_status']) #hum
 
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction1,outlier_fraction2))
