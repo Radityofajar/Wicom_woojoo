@@ -20,42 +20,29 @@ It contains initial models (temperature, humidity, waterlevel, waterleak, door, 
     5. wicom_postproc_wlvl.py
 We distinguish the post-process programs based on the sensor type.
 #### 1. Fire detector (*fire*)
-
-{'dtype' : 'fire', 'nid': 'WS000001FFFF123456','val0' : 0, 'val1' : 25.7}
-
-Meaning of val0 value: fire state, type=int, possible value:0=no fire, 1=fire.
-
-Meaning of val1 value: temperature value, type = one decimal place float.
+    {'dtype' : 'fire', 'nid': 'WS000001FFFF123456','val0' : 0, 'val1' : 25.7}
+    Meaning of val0 value: fire state, type=int, possible value:0=no fire, 1=fire.
+    Meaning of val1 value: temperature value, type = one decimal place float.
 
 #### 2. Temperature, humidity, and door measuring instruments (*tdhd*)
-
-{'dtype': 'tdhd', 'nid': 'WS000001FFFF123456', 'val0': 28.3, 'val1': 48.2, 'val2': 1}
-
-Meaning of val0 value: temperature value, type = one decimal place float.
-
-Meaning of val1 value: Humidity value, type = one decimal place float.
-
-Meaning of val2 value: opening/closing state, type=int, possible value:0=door closed, 1=door open
+    {'dtype': 'tdhd', 'nid': 'WS000001FFFF123456', 'val0': 28.3, 'val1': 48.2, 'val2': 1}
+    Meaning of val0 value: temperature value, type = one decimal place float.
+    Meaning of val1 value: Humidity value, type = one decimal place float.
+    Meaning of val2 value: opening/closing state, type=int, possible value:0=door closed, 1=door open
 
 #### 3. Temperature and humidity measuring instruments (*thtd*)
-
-{'dtype': 'thtd', 'nid': 'WS000001FFFF123456', 'val0': 27.8, 'val1': 56.2}
-
-Meaning of val0 value: temperature value, type = one decimal place float.
-
-Meaning of val1 value: Humidity value, type = one decimal place float.
+    {'dtype': 'thtd', 'nid': 'WS000001FFFF123456', 'val0': 27.8, 'val1': 56.2}
+    Meaning of val0 value: temperature value, type = one decimal place float.
+    Meaning of val1 value: Humidity value, type = one decimal place float.
 
 #### 4. Water leakage sensor (*wlak*)
-
-{"dtype":"wlak", "nid":"WS000001FFFF123456", "val0":0}
-
-Meaning of val0 value: water leakage state, type=int, possible value:0=no leakage, 1=leakage.
-
+    {"dtype":"wlak", "nid":"WS000001FFFF123456", "val0":0}
+    Meaning of val0 value: water leakage state, type=int, possible value:0=no leakage, 1=leakage.
+    
 #### 5. Water level measuring instruments (*wlvl*)
-
-{"dtype":"wlvl", "nid":"WS000001FFFF123456","val0":719}
-
-Meaning of val0 value: water level value, type=int, unit=mm
+    {"dtype":"wlvl", "nid":"WS000001FFFF123456","val0":719}
+    Meaning of val0 value: water level value, type=int, unit=mm
+    
 ### Data Input Format
 Data forms related to the Qubics IoT sensor module. We receive data from the Qubics IoT sensor module every 1 minute and send it directly to post-process program. The data input format is shown below.
 ![data_input_format](/docs/data_input_tdhd.JPG)
