@@ -58,7 +58,7 @@ Meaning of val0 value: water leakage state, type=int, possible value:0=no leakag
 Meaning of val0 value: water level value, type=int, unit=mm
 ### Data Input Format
 Data forms related to the Qubics IoT sensor module. We receive data from the Qubics IoT sensor module every 1 minute and send it directly to post-process program. The data input format is shown below.
-![sliding_window](/docs/sliding_window.png)
+![data_input_format](/docs/data_input_tdhd.JPG)
 _receive_data.py_ is a data acquisition program to collect data from the Qubics IoT sensor module and post it to the IoT.own server.
 
 If the data input format is different, please configure the receive_data function (def receive_data(rawdata)) inside the post-process program. The expected output of this function is : 
@@ -146,22 +146,24 @@ We use **Isolation Forest**, because its reliability and stability.
 #### How to run
 
 ### Result
-
+These are the results of two different tuning on anomaly detection program using temperature sensor.
 #### High sensitivity
     Parameter:
-    1. Outlier_fraction:
-    2. Anomaly_score_threshold:
-    3. Upper_threshold:
-    4. Lower_threshold:
-    5. Train_number:
-    6. Batch_size:
+    1. Outlier_fraction: 0.03
+    2. Anomaly_score_threshold: 2.45
+    3. Upper_threshold: 40
+    4. Lower_threshold: 0
+    5. Train_number: 5760 (*4 days)
+    6. Batch_size: 60 (*1 hours)
+    Note: *in minute
 ![sliding_window](/docs/sliding_window.png)
 #### Low sensitivity
     Parameter:
-    1. Outlier_fraction:
-    2. Anomaly_score_threshold:
-    3. Upper_threshold:
-    4. Lower_threshold:
-    5. Train_number:
-    6. Batch_size:
+    1. Outlier_fraction: 0.03
+    2. Anomaly_score_threshold: 3
+    3. Upper_threshold: 40
+    4. Lower_threshold: 0 
+    5. Train_number: 20160 (*14 days)
+    6. Batch_size: 60 (*1 hours)
+    Note: *in minute
 ![sliding_window](/docs/sliding_window.png)
