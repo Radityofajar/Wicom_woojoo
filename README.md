@@ -70,7 +70,7 @@ If the data input format is different, please configure the receive_data functio
 ### Data Output Format
 The output from post-process program will follow the format below:
 
-![sliding_window](/docs/sliding_window.png)
+![data-output_format](/docs/data_output_tdhd.JPG)
 
 You can modify the data output format by configuring the *changedata* part inside the post-process program.
 
