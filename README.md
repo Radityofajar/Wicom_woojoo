@@ -104,7 +104,7 @@ Parameter: *upper_threshold* and *lower_treshold*
 
 These parameters are used for the simple thresholds to detect extreme values.
 
-![sliding_window](/docs/sliding_window.png)
+![boundaries_threshold](/docs/boundaries_threshold.png)
 
 #### 4. Sliding window
 Parameter: *batch_size* and *train_number*
