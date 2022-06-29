@@ -97,7 +97,7 @@ Reference: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.Is
 #### 2. Anomaly_score_threshold
 This parameter is for calculating the baseline to determine whether the data anomaly score is an outlier or inlier.
 
-![sliding_window](/docs/sliding_window.png)
+![anomaly_score_threshold](/docs/anomaly_score_threshold.png)
 
 #### 3. Boundaries threshold
 Parameter: *upper_threshold* and *lower_treshold*
