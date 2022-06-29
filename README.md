@@ -145,7 +145,7 @@ py wicom_postproc_wlvl.py **https://town.coxlab.kr/ username@gmail.com c34859e08
 
 ## Additional
 
-### Comparison & Conclusion
+### Comparison
 ![model_comparison1](/docs/result_timecomplexity.JPG)
 ![model_comparison2](/docs/result_roc.JPG)
 ![model_comparison3](/docs/result_precision.JPG)
