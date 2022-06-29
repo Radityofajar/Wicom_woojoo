@@ -94,11 +94,15 @@ This parameter sets the amount of contamination of the data set (the proportion 
 
 Reference: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.IsolationForest.html
 
+        Recommendation value: 0.025 - 0.03 (or 2.5% - 3%)
+
 #### 2. Anomaly_score_threshold
 This parameter is for calculating the baseline to determine whether the data anomaly score is an outlier or inlier.
 
 ![anomaly_score_threshold](/docs/anomaly_score_threshold.png)
 
+        Anomaly score threshold = (mean - (standard deviation * x))
+        where: x =  user input to tuning the anomaly score threshold
 #### 3. Boundaries threshold
 Parameter: *upper_threshold* and *lower_treshold*
 
@@ -114,13 +118,28 @@ These parameters are used for the re-training process (online training). It dete
 ![sliding_window](/docs/sliding_window.png)
 
 ## How to run
+There are several parameters that have to fill before run the program.
+
+py wicom_postprocv2_wlvl.py **[URL] [name] [token] [low_threshVal0] [up_thresVal0] [batchsize] [train_number] [outlier_fraction] [anomaly_threshVal0]**
+
+    For example:
+    [URL] = https://town.coxlab.kr/
+    [name] = username@gmail.com
+    [token] = c34859e08fa526f64288182
+    lower_threshold = 0
+    upper_threshold = 3500
+    batchsize = 60 
+    train_number = 1440
+    outlier_fraction = 0.03
+    anomaly_score_threshold = 2.85
+py wicom_postproc_wlvl.py **https://town.coxlab.kr/ username@gmail.com c34859e08fa526f64288182 250 3500 60 1440 0.03 2.85**
 
 ## Conclusions
-•	Regarding re-training and prediction time, the Isolation Forest algorithm is fast.
+•	Regarding training model time and prediction time, the Isolation Forest algorithm is fast. Make it suitable for real-time streaming data.
 
-•	If the anomaly detection sensitivity is too high, it will outcome many false alarms. 
+•	We can change the parameters to adjust the sensitivity, but if the anomaly detection sensitivity is too high, it will outcome many false alarms. 
 
-•	If it is too low, then it will outcome many missed alarms. 
+•	In contrast, if the sensitivity is too low, then it will outcome many missed alarms. 
 
 •	So, we must find the right tune to adjust the best sensitivity for each sensor.
 
