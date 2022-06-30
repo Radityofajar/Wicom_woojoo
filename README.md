@@ -157,19 +157,21 @@ These are the results of two different tuning on anomaly detection program using
     Parameter:
     1. Outlier_fraction: 0.03
     2. Anomaly_score_threshold: 2.45
-    3. Upper_threshold: 40
+    3. Upper_threshold: 60
     4. Lower_threshold: 0
     5. Train_number: 5760 (*4 days)
     6. Batch_size: 60 (*1 hours)
     Note: *in minute
-![sliding_window](/docs/sliding_window.png)
+![high_sensitivity](/docs/hum2_score_oversensitive.png)
+![high_sensitivity](/docs/hum2_value_oversensitive.png)
 #### Low sensitivity
     Parameter:
     1. Outlier_fraction: 0.03
     2. Anomaly_score_threshold: 3
-    3. Upper_threshold: 40
+    3. Upper_threshold: 60
     4. Lower_threshold: 0 
     5. Train_number: 20160 (*14 days)
     6. Batch_size: 60 (*1 hours)
     Note: *in minute
-![sliding_window](/docs/sliding_window.png)
+![low_sensitivity](/docs/hum2_score_notsensitive.png)
+![low_sensitivity](/docs/hum2_value_notsensitive.png)
