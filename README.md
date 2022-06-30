@@ -152,7 +152,7 @@ We use **Isolation Forest**, because its reliability and stability.
 #### How to run
 
 ### Result
-These are the results of two different tuning on anomaly detection program using temperature sensor.
+These are the results of two different tuning on anomaly detection program using humidity sensor.
 #### High sensitivity
     Parameter:
     1. Outlier_fraction: 0.03
