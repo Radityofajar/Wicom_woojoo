@@ -30,14 +30,14 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2, outlier_fraction3):
         outlier_fraction1 = outlier_fraction1
 
     if outlier_fraction2 == 0:
-        outlier_fraction2 = 0.01 # 1% of contamination
+        outlier_fraction2 = 0.001 # 0.1% of contamination
     elif outlier_fraction2 >= outlier_fraction_param:
         outlier_fraction2 = outlier_fraction_param
     else:
         outlier_fraction2 = outlier_fraction2
     
     if outlier_fraction3 == 0:
-        outlier_fraction3 = 0.01 # 1% of contamination
+        outlier_fraction3 = 0.001 # 0.1% of contamination
     elif outlier_fraction3 >= outlier_fraction_param:
         outlier_fraction3 = outlier_fraction_param
     else:
