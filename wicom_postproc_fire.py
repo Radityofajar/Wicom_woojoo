@@ -23,14 +23,14 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2):
 
     #outlier parameter
     if outlier_fraction1 == 0: #for fire
-        outlier_fraction1 = 0.001 # 1% of contamination
+        outlier_fraction1 = 0.001 # 0.1% of contamination
     elif outlier_fraction1 >= outlier_fraction_param:
         outlier_fraction1 = outlier_fraction_param
     else:
         outlier_fraction1 = outlier_fraction1
 
     if outlier_fraction2 == 0: #for temperature
-        outlier_fraction2 = 0.001 # 1% of contamination
+        outlier_fraction2 = 0.001 # 0.1% of contamination
     elif outlier_fraction2 >= outlier_fraction_param:
         outlier_fraction2 = outlier_fraction_param
     else:
