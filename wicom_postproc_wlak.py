@@ -23,7 +23,7 @@ def train(sensor_nid, outlier_fraction):
 
     #outlier parameter
     if outlier_fraction == 0:
-        outlier_fraction = 0.01 # 1% of contamination
+        outlier_fraction = 0.001 # 1% of contamination
     elif outlier_fraction >= outlier_fraction_param:
         outlier_fraction = outlier_fraction_param
     else:
