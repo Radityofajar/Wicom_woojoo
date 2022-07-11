@@ -157,8 +157,7 @@ These are the results of two different tuning on anomaly detection program using
     5. Train_number: 5760 (*4 days)
     6. Batch_size: 60 (*1 hours)
     Note: *in minute
-![high_sensitivity](/docs/hum2_score_oversensitive.png)
-![high_sensitivity](/docs/hum2_value_oversensitive.png)
+![high_sensitivity](/docs/humidity_oversensitive.png)
 #### Low sensitivity
     Parameter:
     1. Outlier_fraction: 0.03
@@ -168,5 +167,4 @@ These are the results of two different tuning on anomaly detection program using
     5. Train_number: 20160 (*14 days)
     6. Batch_size: 60 (*1 hours)
     Note: *in minute
-![low_sensitivity](/docs/hum2_score_notsensitive.png)
-![low_sensitivity](/docs/hum2_value_notsensitive.png)
+![low_sensitivity](/docs/humidity_notsensitive.png)
