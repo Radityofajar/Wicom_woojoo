@@ -1,5 +1,4 @@
-# Wicom_woojoo (Description is not finish)
-
+# Wicom_woojoo
 ### System Requirements
     Python 3
     Pyiotown >> python3 -m pip install pyiotown
