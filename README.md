@@ -147,11 +147,7 @@ MCD: similar to HBOS, this algorithm is faster than IForest. However, the precis
 
 We use **Isolation Forest**, because its reliability and stability.
 
-### Testing
-
-#### How to run
-
-### Result
+### Testing Result
 These are the results of two different tuning on anomaly detection program using humidity sensor.
 #### High sensitivity
     Parameter:
