@@ -150,21 +150,21 @@ We use **Isolation Forest**, because its reliability and stability.
 These are the results of two different tuning on anomaly detection program using humidity sensor.
 #### High sensitivity
     Parameter:
-    1. Outlier_fraction: 0.03
-    2. Anomaly_score_threshold: 2.45
+    1. Outlier_fraction: 0.03 (minimum limit = 0.01)
+    2. Anomaly_score_threshold: 2.5
     3. Upper_threshold: 60
     4. Lower_threshold: 0
-    5. Train_number: 5760 (*4 days)
-    6. Batch_size: 60 (*1 hours)
+    5. Train_number: 2880 (*2 days)
+    6. Batch_size: 30 (*1/2 hours)
     Note: *in minute
 ![high_sensitivity](/docs/humidity_oversensitive.png)
 #### Low sensitivity
     Parameter:
-    1. Outlier_fraction: 0.03
-    2. Anomaly_score_threshold: 3
+    1. Outlier_fraction: 0.05 (minimum limit = 0.001)
+    2. Anomaly_score_threshold: 3.3
     3. Upper_threshold: 60
     4. Lower_threshold: 0 
-    5. Train_number: 20160 (*14 days)
-    6. Batch_size: 60 (*1 hours)
+    5. Train_number: 57600 (*40 days)
+    6. Batch_size: 30 (*1/2 hours)
     Note: *in minute
 ![low_sensitivity](/docs/humidity_notsensitive.png)
