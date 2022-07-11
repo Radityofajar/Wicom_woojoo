@@ -11,3 +11,6 @@ These jupyter notebook is for get the result of the anomaly detection program (o
 
 #### graph
 This jupyter notebook is for see the result of anomaly score and also anomaly threshold
+
+## Testing result.xlsx
+Shows the testing result for all experiment that we have done
