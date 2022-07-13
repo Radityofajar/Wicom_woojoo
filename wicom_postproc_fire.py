@@ -246,19 +246,23 @@ def post_process(rawdata):
         else:
             #abnormal condition
             sensor_fire_status = 'abnormal/fire'
+
         #Temperature sensor
-        if anomaly_score_temp > anomaly_threshVal1:
-            if float(sensor_temp[0]) > threshold_temp_lower:
-                if float(sensor_temp[0]) < threshold_temp_higher:
+        
+        if float(sensor_temp[0]) > threshold_temp_lower:
+            if float(sensor_temp[0]) < threshold_temp_higher:
+                if anomaly_score_temp > anomaly_threshVal1:
                     #normal condition
                     sensor_temp_status = 'normal'
                 else:
-                    sensor_temp_status = 'abnormal/too high'
+                    #abnormal condition detected by isolation forest
+                    sensor_temp_status = 'abnormal'
             else:
-                sensor_temp_status = 'abnormal/too low'
+                #abnormal condition detected by thresholdAD
+                sensor_temp_status = 'abnormal/too high'
         else:
-            #abnormal condition
-            sensor_temp_status = 'abnormal'
+            #abnormal condition detected by thresholdAD
+            sensor_temp_status = 'abnormal/too low'
 
         #append value of anomaly score and sensor status
         nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'],float(anomaly_score_temp))
