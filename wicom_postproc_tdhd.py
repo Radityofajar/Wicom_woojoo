@@ -1,4 +1,3 @@
-from pyiotown import post
 from pyiotown_wicom import postprocess
 import json
 import numpy as np
@@ -122,6 +121,12 @@ def post_process(rawdata):
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_3[sensor_nid] = np.array([[]]) #make a new array for new nid (door)
+            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2['anomaly_score'] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library_3['anomaly_score'] = np.array([[]]) #make a new array for new nid (door)
+            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2['anomaly_status'] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library_3['anomaly_status'] = np.array([[]]) #make a new array for new nid (door)
 
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_temp) #temp
@@ -280,16 +285,28 @@ def post_process(rawdata):
         #print(sensor_hum[0])
 
         #clustering between normal & abnormal
-        if anomaly_score_temp > anomaly_threshVal0 and float(sensor_temp[0]) > threshold_temp_lower and float(sensor_temp[0]) < threshold_temp_higher:
-            #normal condition
-            sensor_temp_status = 'normal'
+        if anomaly_score_temp > anomaly_threshVal0:
+            if float(sensor_temp[0]) > threshold_temp_lower:
+                if float(sensor_temp[0]) < threshold_temp_higher:
+                    #normal condition
+                    sensor_temp_status = 'normal'
+                else:
+                    sensor_temp_status = 'abnormal/too high'
+            else:
+                sensor_temp_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_temp_status = 'abnormal'
 
-        if anomaly_score_hum > anomaly_threshVal1 and float(sensor_hum[0]) > threshold_hum_lower and float(sensor_hum[0]) < threshold_hum_higher:
-            #normal condition
-            sensor_hum_status = 'normal'
+        if anomaly_score_hum > anomaly_threshVal1:
+            if float(sensor_hum[0]) > threshold_hum_lower:
+                if float(sensor_hum[0]) < threshold_hum_higher:
+                    #normal condition
+                    sensor_hum_status = 'normal'
+                else:
+                    sensor_hum_status = 'abnormal/too high'
+            else:
+                sensor_hum_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_hum_status = 'abnormal'
@@ -309,6 +326,16 @@ def post_process(rawdata):
             else:
                 #abnormal condition
                 sensor_door_status = 'abnormal/closed'
+        
+        #append value of anomaly score and sensor status
+        nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'],float(anomaly_score_temp))
+        nid_library['anomaly_status'] = np.append(nid_library['anomaly_status'],sensor_temp_status)
+
+        nid_library_2['anomaly_score'] = np.append(nid_library_2['anomaly_score'],float(anomaly_score_hum))
+        nid_library_2['anomaly_status'] = np.append(nid_library_2['anomaly_status'],sensor_hum_status)
+
+        nid_library_3['anomaly_score'] = np.append(nid_library_3['anomaly_score'],float(anomaly_score_door))
+        nid_library_3['anomaly_status'] = np.append(nid_library_3['anomaly_status'],sensor_door_status)
 
         #store the data in order to send it back to IoT.own
         changedata = {}
@@ -323,6 +350,8 @@ def post_process(rawdata):
         changedata['anomaly_score_temp'] = float(anomaly_score_temp)
         changedata['anomaly_score_hum'] = float(anomaly_score_hum)
         changedata['anomaly_score_door'] = float(anomaly_score_door)
+        changedata['anomaly_score_threshold_temp'] = float(anomaly_threshVal0)
+        changedata['anomaly_score_threshold_hum'] = float(anomaly_threshVal1)
         rawdata['data'] = changedata
         print(rawdata)
         return rawdata
@@ -330,7 +359,7 @@ def post_process(rawdata):
         print('Sensor is not supported')
 
 if __name__ == '__main__':
-    if len(sys.argv) != 15:
+    if len(sys.argv) != 14:
         print(f"Usage: {sys.argv[0]} [URL] [name] [token] [low_threshVal0] [up_threshVal0] [low_threshVal1] [up_thresVal1] [door NC/NO] [batchsize] [train_number] [outlier_fraction] [anomaly_threshVal0] [anomaly_threshVal1]")
         exit(1)
         
