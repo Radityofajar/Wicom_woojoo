@@ -1,4 +1,3 @@
-from pyiotown import post
 from pyiotown_wicom import postprocess
 import json
 import numpy as np
@@ -107,6 +106,10 @@ def post_process(rawdata):
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (fire)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid (fire)
+            nid_library_2['anomaly_score'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid (fire)
+            nid_library_2['anomaly_status'] = np.array([[]]) #make a new array for new nid (temperature)
 
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_fire) #fire
@@ -244,9 +247,15 @@ def post_process(rawdata):
             #abnormal condition
             sensor_fire_status = 'abnormal/fire'
         #Temperature sensor
-        if anomaly_score_temp > anomaly_threshVal1 and float(sensor_temp[0]) > threshold_temp_lower and float(sensor_temp[0]) < threshold_temp_higher:
-            #normal condition
-            sensor_temp_status = 'normal'
+        if anomaly_score_temp > anomaly_threshVal1:
+            if float(sensor_temp[0]) > threshold_temp_lower:
+                if float(sensor_temp[0]) < threshold_temp_higher:
+                    #normal condition
+                    sensor_temp_status = 'normal'
+                else:
+                    sensor_temp_status = 'abnormal/too high'
+            else:
+                sensor_temp_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_temp_status = 'abnormal'
@@ -268,6 +277,7 @@ def post_process(rawdata):
         changedata['result_val1'] = sensor_temp_status
         changedata['anomaly_score_val0'] = float(anomaly_score_fire)
         changedata['anomaly_score_val1'] = float(anomaly_score_temp)
+        changedata['anomaly_score_threshold_temp'] = float(anomaly_threshVal1)
         rawdata['data'] = changedata
         print(rawdata)
         return rawdata
