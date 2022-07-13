@@ -285,31 +285,36 @@ def post_process(rawdata):
         #print(sensor_hum[0])
 
         #clustering between normal & abnormal
-        if anomaly_score_temp > anomaly_threshVal0:
-            if float(sensor_temp[0]) > threshold_temp_lower:
-                if float(sensor_temp[0]) < threshold_temp_higher:
+        #temperature sensor
+        if float(sensor_temp[0]) > threshold_temp_lower:
+            if float(sensor_temp[0]) < threshold_temp_higher:
+                if anomaly_score_temp > anomaly_threshVal0:
                     #normal condition
                     sensor_temp_status = 'normal'
                 else:
-                    sensor_temp_status = 'abnormal/too high'
+                    #abnormal condition detected by isolation forest
+                    sensor_temp_status = 'abnormal'
             else:
-                sensor_temp_status = 'abnormal/too low'
+                sensor_temp_status = 'abnormal/too high'
         else:
-            #abnormal condition
-            sensor_temp_status = 'abnormal'
-
-        if anomaly_score_hum > anomaly_threshVal1:
-            if float(sensor_hum[0]) > threshold_hum_lower:
-                if float(sensor_hum[0]) < threshold_hum_higher:
+            sensor_temp_status = 'abnormal/too low'
+        
+        #humidity sensor
+        if float(sensor_hum[0]) > threshold_hum_lower:
+            if float(sensor_hum[0]) < threshold_hum_higher:
+                if anomaly_score_hum > anomaly_threshVal1:
                     #normal condition
                     sensor_hum_status = 'normal'
                 else:
-                    sensor_hum_status = 'abnormal/too high'
+                    #abnormal condition detected by isolation forest
+                    sensor_hum_status = 'abnormal'
             else:
-                sensor_hum_status = 'abnormal/too low'
+                #abnormal condition detected by thresholdAD
+                sensor_hum_status = 'abnormal/too high'
         else:
-            #abnormal condition
-            sensor_hum_status = 'abnormal'
+            #abnormal condition detected by thresholdAD
+            sensor_hum_status = 'abnormal/too low'
+        
 
         if door_thresh == 'NC': #normally closed
             if float(sensor_door) == 0:
