@@ -1,4 +1,3 @@
-from pyiotown import post
 from pyiotown_wicom import postprocess
 import json
 import numpy as np
@@ -110,6 +109,10 @@ def post_process(rawdata):
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2['anomaly_score'] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2['anomaly_status'] = np.array([[]]) #make a new array for new nid (humidity)
         
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_temp) #temp
@@ -142,6 +145,8 @@ def post_process(rawdata):
             finally:
                 print(filename_temp_model)
                 print(filename_hum_model)
+                anomaly_threshVal0 = 0.0
+                anomaly_threshVal1 = 0.0
                 counter += 1
 
         elif counter <= batch_size:
@@ -242,16 +247,29 @@ def post_process(rawdata):
 
         #clustering between normal & abnormal
         #temperature sensor
-        if anomaly_score_temp > anomaly_threshVal0 and float(sensor_temp[0]) > threshold_temp1_lower and float(sensor_temp[0]) < threshold_temp1_higher:
-            #normal condition
-            sensor_temp_status = 'normal'
+        if anomaly_score_temp > anomaly_threshVal0:
+            if float(sensor_temp[0]) > threshold_temp1_lower:
+                if float(sensor_temp[0]) < threshold_temp1_higher:
+                    #normal condition
+                    sensor_temp_status = 'normal'
+                else:
+                    sensor_temp_status = 'abnormal/too high'
+            else:
+                sensor_temp_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_temp_status = 'abnormal'
+
         #humidity sensor
-        if anomaly_score_hum > anomaly_threshVal1 and float(sensor_hum[0]) > threshold_hum1_lower and float(sensor_hum[0]) < threshold_hum1_higher:
-            #normal condition
-            sensor_hum_status = 'normal'
+        if anomaly_score_hum > anomaly_threshVal1:
+            if float(sensor_hum[0]) > threshold_hum1_lower:
+                if float(sensor_hum[0]) < threshold_hum1_higher:
+                    #normal condition
+                    sensor_hum_status = 'normal'
+                else:
+                    sensor_hum_status = 'abnormal/too high'
+            else:
+                sensor_hum_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_hum_status = 'abnormal'
@@ -273,6 +291,8 @@ def post_process(rawdata):
         changedata['result_hum'] = sensor_hum_status
         changedata['anomaly_score_temp'] = float(anomaly_score_temp)
         changedata['anomaly_score_hum'] = float(anomaly_score_hum)
+        changedata['anomaly_score_threshold_temp'] = float(anomaly_threshVal0)
+        changedata['anomaly_score_threshold_hum'] = float(anomaly_threshVal1)
         
         rawdata['data'] = changedata
         print(rawdata)
