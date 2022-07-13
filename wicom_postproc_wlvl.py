@@ -1,4 +1,3 @@
-from pyiotown import post
 from pyiotown_wicom import postprocess
 import json
 import numpy as np
@@ -93,6 +92,8 @@ def post_process(rawdata):
         sensor_nid = message['nid']
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
+            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid
+            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid
         
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_wlvl)
@@ -116,6 +117,7 @@ def post_process(rawdata):
                 print('Using specified model')
             finally:
                 print(filename_wlvl_model)
+                anomaly_threshVal0 = 0.0
                 counter += 1
 
         elif counter <= batch_size:
@@ -127,7 +129,7 @@ def post_process(rawdata):
 
             #calculate the outlier_fraction
             outlier = Counter(nid_library['anomaly_status'])#wlvl
-            outlier_fraction = outlier['abnormal'] / len(nid_library['anomaly_score'])
+            outlier_fraction = outlier['abnormal'] / len(nid_library['anomaly_status'])
 
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction))
@@ -190,9 +192,15 @@ def post_process(rawdata):
         #clustering between normal & abnormal
 
         #Water level sensor
-        if anomaly_score_wlvl >= anomaly_threshVal0 and float(sensor_wlvl[0]) > threshold_wlvl_lower and float(sensor_wlvl[0]) < threshold_wlvl_higher:
-            #normal condition
-            sensor_wlvl_status = 'normal'
+        if anomaly_score_wlvl >= anomaly_threshVal0:
+            if float(sensor_wlvl[0]) > threshold_wlvl_lower:
+                if float(sensor_wlvl[0]) < threshold_wlvl_higher:
+                    #normal condition
+                    sensor_wlvl_status = 'normal'
+                else:
+                    sensor_wlvl_status = 'abnormal/too high'
+            else:
+                sensor_wlvl_status = 'abnormal/too low'
         else:
             #abnormal condition
             sensor_wlvl_status = 'abnormal'
