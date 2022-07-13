@@ -186,24 +186,27 @@ def post_process(rawdata):
 
         print(anomaly_score_wlvl)
         print(sensor_wlvl[0])
-
         print(anomaly_threshVal0)
 
         #clustering between normal & abnormal
 
         #Water level sensor
-        if anomaly_score_wlvl >= anomaly_threshVal0:
-            if float(sensor_wlvl[0]) > threshold_wlvl_lower:
-                if float(sensor_wlvl[0]) < threshold_wlvl_higher:
+        
+        if float(sensor_wlvl[0]) > threshold_wlvl_lower:
+            if float(sensor_wlvl[0]) < threshold_wlvl_higher:
+                if anomaly_score_wlvl >= anomaly_threshVal0:
                     #normal condition
                     sensor_wlvl_status = 'normal'
                 else:
-                    sensor_wlvl_status = 'abnormal/too high'
+                    #abnormal condition detected by isolation forest
+                    sensor_wlvl_status = 'abnormal'
             else:
-                sensor_wlvl_status = 'abnormal/too low'
+                #abnormal condition detected by thresholdAD
+                sensor_wlvl_status = 'abnormal/too high'
         else:
-            #abnormal condition
-            sensor_wlvl_status = 'abnormal'
+            #abnormal condition detected by thresholdAD
+            sensor_wlvl_status = 'abnormal/too low'
+        
 
         #append value of anomaly score and sensor status
         nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'], float(anomaly_score_wlvl))
