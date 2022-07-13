@@ -113,6 +113,7 @@ def post_process(rawdata):
             finally:
                 print(filename_wlak_model)
                 anomaly_threshVal0 = 0.0
+                counter +=1
 
         elif counter <= batch_size:
             #mode2: Keep using initial model until the data stored in array
