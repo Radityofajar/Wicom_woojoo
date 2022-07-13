@@ -1,4 +1,3 @@
-from pyiotown import post
 from pyiotown_wicom import postprocess
 import json
 import numpy as np
@@ -87,6 +86,8 @@ def post_process(rawdata):
         sensor_nid = message['nid']
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
+            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid
+            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid
             
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_wlak)
@@ -182,6 +183,10 @@ def post_process(rawdata):
         else:
             #abnormal condition
             sensor_wlak_status = 'abnormal/leak'
+
+        #append value of anomaly score and sensor status
+        nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'], float(anomaly_score_wlak))
+        nid_library['anomaly_status'] = np.append(nid_library['anomaly_status'], sensor_wlak_status)
 
         #store the data in order to send it back to IoT.own
         changedata = {}
