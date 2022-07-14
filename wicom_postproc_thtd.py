@@ -9,9 +9,6 @@ import sys
 import warnings
 warnings.filterwarnings('ignore')
 
-
-counter = 1
-
 def train(sensor_nid, outlier_fraction1, outlier_fraction2):
     global outlier_fraction_param
     global nid_library, nid_library_2
@@ -106,22 +103,26 @@ def post_process(rawdata):
 
         #check sensor nid
         sensor_nid = message['nid']
+        score_nid = 'score_' + str(sensor_nid)
+        status_nid = 'status_' + str(sensor_nid)
+        counter = 'counter' + str(sensor_nid)
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
-            score_nid = 'score_' + sensor_nid
-            status_nid = 'status_' + sensor_nid
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library[score_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library[status_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_2[score_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_2[status_nid] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library[counter] = 1 #set counter
         
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_temp) #temp
         nid_library_2[sensor_nid] = np.append(nid_library_2[sensor_nid], sensor_hum) #hum
-        print(nid_library[sensor_nid])
 
-        if counter == 1:
+        #print counter
+        print('counter: ' + str(nid_library[counter]))
+
+        if nid_library[counter] == 1:
             #mode1: using initial mode
             try: #if spesified model is already built
                 #filename
@@ -149,13 +150,13 @@ def post_process(rawdata):
                 print(filename_hum_model)
                 anomaly_threshVal0 = 0.0
                 anomaly_threshVal1 = 0.0
-                counter += 1
+                nid_library[counter] += 1
 
-        elif counter <= batch_size:
+        elif nid_library[counter] <= batch_size:
             #mode2: Keep using initial model until the data stored in array
-            counter += 1
+            nid_library[counter] += 1
 
-        elif counter == (batch_size + 1):
+        elif nid_library[counter] == (batch_size + 1):
             #mode 3: retrain the model
 
             #calculate the outlier fraction
@@ -163,8 +164,8 @@ def post_process(rawdata):
             outlier2 = Counter(nid_library_2[status_nid]) #hum
             outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #temp
             outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #hum
-            print('outlier fraction 1: '+outlier_fraction1)
-            print('outlier fraction 2: '+outlier_fraction2)
+            print('outlier fraction 1: '+str(outlier_fraction1))
+            print('outlier fraction 2: '+str(outlier_fraction2))
 
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction1,outlier_fraction2))
@@ -173,10 +174,10 @@ def post_process(rawdata):
             else:
                 print('thread is starting')
                 thread.start()
-            counter += 1
+            nid_library[counter] += 1
             thread.join()
         
-        elif counter == (batch_size+2):
+        elif nid_library[counter] == (batch_size+2):
             #model 4: load retrain model
 
             #filename
@@ -215,11 +216,11 @@ def post_process(rawdata):
             else:
                 anomaly_threshVal1 = anomaly_score_hum_cal
 
-            counter += 1
+            nid_library[counter] += 1
 
-        elif counter <= (batch_size + batch_size):
+        elif nid_library[counter] <= (batch_size + batch_size):
             #mode 5: sliding window method
-            counter += 1
+            nid_library[counter] += 1
 
         else:
             #optimize the array size of sliding window for temperature
@@ -230,7 +231,7 @@ def post_process(rawdata):
             nid_library_2[sensor_nid] = nid_library_2[sensor_nid][-(train_number+2*batch_size):]
             nid_library_2[score_nid] = nid_library_2[score_nid][-(train_number+2*batch_size):]
             nid_library_2[status_nid] = nid_library_2[status_nid][-(train_number+2*batch_size):]
-            counter = (batch_size+1)
+            nid_library[counter] = (batch_size+1)
 
         #preprocess the data for anomaly detection
         sensor_temp_reshape = sensor_temp.reshape(1,-1)
@@ -241,13 +242,12 @@ def post_process(rawdata):
         anomaly_score_hum = model_hum1.decision_function(sensor_hum_reshape)
 
         #print the value in the terminal
-        print(anomaly_score_temp)
-        print(sensor_temp[0])
-        print(anomaly_score_hum)
-        print(sensor_hum[0])
-
-        print(anomaly_threshVal0)
-        print(anomaly_threshVal1)
+        print('temp value: '+str(sensor_temp[0]))
+        print('temp score: '+str(anomaly_score_temp))
+        print('temp threshold: '+str(anomaly_threshVal0))
+        print('hum value: '+str(sensor_hum[0]))
+        print('hum score: '+str(anomaly_score_hum))
+        print('hum threshold: '+str(anomaly_threshVal1))
 
         #clustering between normal & abnormal
         #temperature sensor
