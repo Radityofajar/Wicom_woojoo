@@ -257,7 +257,7 @@ def post_process(rawdata):
         
         if float(sensor_temp[0]) > threshold_temp_lower:
             if float(sensor_temp[0]) < threshold_temp_higher:
-                if anomaly_score_temp > anomaly_threshVal1:
+                if anomaly_score_temp >= anomaly_threshVal1:
                     #normal condition
                     sensor_temp_status = 'normal'
                 else:
