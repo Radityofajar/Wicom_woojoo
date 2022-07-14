@@ -85,10 +85,12 @@ def post_process(rawdata):
         score_nid = 'score_' + str(sensor_nid)
         status_nid = 'status_' + str(sensor_nid)
         counter = 'counter' + str(sensor_nid)
+        anomaly_threshVal0 = 'thresholdVal0' + str(sensor_nid)
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
             nid_library[score_nid] = np.array([[]]) #make a new array for new nid
             nid_library[status_nid] = np.array([[]]) #make a new array for new nid
+            nid_library[anomaly_threshVal0] = 0.0
             nid_library[counter] = 1 #set counter
             
         #input stream data to the window
@@ -116,7 +118,6 @@ def post_process(rawdata):
                 print('Using specified model')
             finally:
                 print(filename_wlak_model)
-                anomaly_threshVal0 = 0.0
                 nid_library[counter] +=1
 
         elif nid_library[counter] <= batch_size:
@@ -156,13 +157,15 @@ def post_process(rawdata):
             anomaly_score_wlak_mean = nid_library[score_nid].mean()
             anomaly_score_wlak_std = nid_library[score_nid].std()
             anomaly_score_wlak_cal = anomaly_score_wlak_mean - (anomaly_score_wlak_std*1.5)
-            
+            print('wlak score_mean: '+str(anomaly_score_wlak_mean))
+            print('wlak score_std: '+str(anomaly_score_wlak_std))
+            print('wlak score_cal: '+str(anomaly_score_wlak_cal))
             if anomaly_score_wlak_cal <= -0.15:
-                anomaly_threshVal0 = -0.15
+                nid_library[anomaly_threshVal0] = -0.15
             elif anomaly_score_wlak_cal >= 0.1:
-                anomaly_threshVal0 = 0.1
+                nid_library[anomaly_threshVal0] = 0.1
             else:
-                anomaly_threshVal0 = anomaly_score_wlak_cal
+                nid_library[anomaly_threshVal0] = anomaly_score_wlak_cal
             
             nid_library[counter] += 1
 
