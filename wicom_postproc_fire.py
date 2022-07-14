@@ -17,7 +17,7 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2):
 
     #model setting
     estimator = 100
-    samples = 500
+    samples = 1000
     randstate = 42
 
     #outlier parameter
@@ -40,12 +40,12 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2):
     model_temp = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction2)
 
     #data preprocess
-    nid_library['data'] = nid_library['data'].reshape(-1,1)
-    nid_library_2['data'] = nid_library_2['data'].reshape(-1,1)
+    data_temp = nid_library[sensor_nid].reshape(-1,1)
+    data_fire = nid_library_2[sensor_nid].reshape(-1,1)
 
     #model training
-    model_temp.fit(nid_library['data'])
-    model_fire.fit(nid_library_2['data'])
+    model_temp.fit(data_temp)
+    model_fire.fit(data_fire)
 
     #filename
     var1 = 'model\model_'
@@ -66,7 +66,7 @@ def receive_data(rawdata):
     print(raw_data)
     # raw_data --> 'POST /api/v1.0/data HTTP/1.1\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 120\r\nToken: 079da3dd77569523551c9ddd8c8e57c4f4ee71bea5e848d68785b06545d098ac\r\n\r\n{"type": "2","nid": "WS000001FFFF123456", "data": {"dtype":"fire", "nid":"WS000001FFFF123456", "val0":0,"val1":26.2}}\r\n\r\n'
     test = len(raw_data.split())
-    if raw_data == 'Missing':
+    if raw_data == 'Missing' or test < 11:
         details = 'Data is not complete'
         print(details)
     elif test >= 11:
@@ -104,12 +104,14 @@ def post_process(rawdata):
         #check sensor nid
         sensor_nid = message['nid']
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
+            score_nid = 'score_' + sensor_nid
+            status_nid = "status_" + sensor_nid
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (fire)
+            nid_library[score_nid] = np.array([[]]) #make a new array for new nid (fire)
+            nid_library[status_nid] = np.array([[]]) #make a new array for new nid (fire)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
-            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid (fire)
-            nid_library_2['anomaly_score'] = np.array([[]]) #make a new array for new nid (temperature)
-            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid (fire)
-            nid_library_2['anomaly_status'] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2[score_nid] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library_2[status_nid] = np.array([[]]) #make a new array for new nid (temperature)
 
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_fire) #fire
@@ -121,15 +123,15 @@ def post_process(rawdata):
             try: #if spesified model is already built
                 #filename
                 var1 = 'model\model_'
-                var_temp = '_temp.joblib'
                 var_fire = '_fire.joblib'
+                var_temp = '_temp.joblib'
                 filename_fire_model = var1 + sensor_nid + var_fire
                 filename_temp_model = var1 + sensor_nid + var_temp
                 #load model
                 model_fire = load(filename_fire_model)
                 model_temp = load(filename_temp_model)
                 
-            except: #if there is no spesificied model
+            except: #if there is no specified model
                 #filename
                 filename_fire_model = 'model\model_fire.joblib'
                 filename_temp_model = 'model\model_temp1.joblib'
@@ -154,11 +156,12 @@ def post_process(rawdata):
             #mode 3: retrain the model
 
             #calculate the outlier fraction
-            outlier1 = Counter(nid_library['anomaly_status']) #fire
-            outlier2 = Counter(nid_library_2['anomaly_status']) #temp
-            outlier_fraction1 = outlier1['abnormal'] / len(nid_library['anomaly_status']) #fire
-            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2['anomaly_status']) #temp
-
+            outlier1 = Counter(nid_library[status_nid]) #fire
+            outlier2 = Counter(nid_library_2[status_nid]) #temp
+            outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #fire
+            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #temp
+            print(outlier_fraction1)
+            print(outlier_fraction2)
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction1, outlier_fraction2,))
             if thread.is_alive():
@@ -185,44 +188,44 @@ def post_process(rawdata):
             #print('model loaded')
 
             #calculate the anomaly score threshold for fire
-            anomaly_score_temp_mean = nid_library['anomaly_score'].mean()
-            anomaly_score_temp_std = nid_library['anomaly_score'].std()
-            anomaly_score_temp_cal = anomaly_score_temp_mean - (anomaly_score_temp_std*1.5)
-            
-            if anomaly_score_temp_cal <= -0.15:
-                anomaly_threshVal0 = -0.15
-            elif anomaly_score_temp_cal >= 0.01:
-                anomaly_threshVal0 = 0.01
-            else:
-                anomaly_threshVal0 = anomaly_score_temp_cal
-
-            #calculate the anomaly score threshold for temperature
-            anomaly_score_fire_mean = nid_library_2['anomaly_score'].mean()
-            anomaly_score_fire_std = nid_library_2['anomaly_score'].std()
-            anomaly_score_fire_cal = anomaly_score_fire_mean - (anomaly_score_fire_std*anomaly_threshVal1_param)
+            anomaly_score_fire_mean = nid_library[score_nid].mean()
+            anomaly_score_fire_std = nid_library[score_nid].std()
+            anomaly_score_fire_cal = anomaly_score_fire_mean - (anomaly_score_fire_std*1.5)
             
             if anomaly_score_fire_cal <= -0.15:
+                anomaly_threshVal0 = -0.15
+            elif anomaly_score_fire_cal >= 0.01:
+                anomaly_threshVal0 = 0.01
+            else:
+                anomaly_threshVal0 = anomaly_score_fire_cal
+
+            #calculate the anomaly score threshold for temperature
+            anomaly_score_temp_mean = nid_library_2[score_nid].mean()
+            anomaly_score_temp_std = nid_library_2[score_nid].std()
+            anomaly_score_temp_cal = anomaly_score_temp_mean - (anomaly_score_temp_std*anomaly_threshVal1_param)
+            
+            if anomaly_score_temp_cal <= -0.15:
                 anomaly_threshVal1 = -0.15
             elif anomaly_score_temp_cal >= 0.01:
                 anomaly_threshVal1 = 0.01
             else:
-                anomaly_threshVal1 = anomaly_score_fire_cal
+                anomaly_threshVal1 = anomaly_score_temp_cal
 
             counter += 1
 
-        elif counter <= (train_number + batch_size):
+        elif counter <= (batch_size + batch_size):
             #mode 5: sliding window method
             counter += 1
 
         else:
             #optimize the array size of sliding window for fire
-            nid_library['data'] = nid_library['data'][-(train_number-batch_size):]
-            nid_library['anomaly_score'] = nid_library['anomaly_score'][-(train_number-batch_size):]
-            nid_library['anomaly_status'] = nid_library['anomaly_status'][-(train_number-batch_size):]
+            nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
+            nid_library[score_nid] = nid_library[score_nid][-(train_number+2*batch_size):]
+            nid_library[status_nid] = nid_library[status_nid][-(train_number+2*batch_size):]
             #optimize the array size of sliding window for temp
-            nid_library_2['data'] = nid_library_2['data'][-(train_number-batch_size):]
-            nid_library_2['anomaly_score'] = nid_library_2['anomaly_score'][-(train_number-batch_size):]
-            nid_library_2['anomaly_status'] = nid_library_2['anomaly_status'][-(train_number-batch_size):]
+            nid_library_2[sensor_nid] = nid_library_2[sensor_nid][-(train_number+2*batch_size):]
+            nid_library_2[score_nid] = nid_library_2[score_nid][-(train_number+2*batch_size):]
+            nid_library_2[status_nid] = nid_library_2[status_nid][-(train_number+2*batch_size):]
             counter = (batch_size+1)
 
         #preprocess the data for anomaly detection
@@ -265,11 +268,11 @@ def post_process(rawdata):
             sensor_temp_status = 'abnormal/too low'
 
         #append value of anomaly score and sensor status
-        nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'],float(anomaly_score_temp))
-        nid_library['anomaly_status'] = np.append(nid_library['anomaly_status'],sensor_temp_status)
+        nid_library[score_nid] = np.append(nid_library[score_nid],float(anomaly_score_temp))
+        nid_library[status_nid] = np.append(nid_library[status_nid],sensor_temp_status)
 
-        nid_library_2['anomaly_score'] = np.append(nid_library_2['anomaly_score'],float(anomaly_score_fire))
-        nid_library_2['anomaly_status'] = np.append(nid_library_2['anomaly_status'],sensor_fire_status)
+        nid_library_2[score_nid] = np.append(nid_library_2[score_nid],float(anomaly_score_fire))
+        nid_library_2[status_nid] = np.append(nid_library_2[status_nid],sensor_fire_status)
         
         #store the data in order to send it back to IoT.own
         changedata = {}
