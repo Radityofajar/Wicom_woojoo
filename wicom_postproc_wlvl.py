@@ -166,8 +166,8 @@ def post_process(rawdata):
 
             if anomaly_score_wlvl_cal <= -0.15:
                 anomaly_threshVal0 = -0.15
-            elif anomaly_score_wlvl_cal >= 0.02:
-                anomaly_threshVal0 = 0.02
+            elif anomaly_score_wlvl_cal >= 0.0:
+                anomaly_threshVal0 = 0.0
             else:
                 anomaly_threshVal0 = anomaly_score_wlvl_cal
 
@@ -191,13 +191,12 @@ def post_process(rawdata):
         anomaly_score_wlvl = model_waterlevel.decision_function(sensor_wlvl_reshape)
 
         print('wlvl value: '+str(sensor_wlvl[0]))
-        print('wlvl score: '+str(anomaly_score_wlvl))
-        print('wlvl threshold: '+str(anomaly_threshVal0))
+        print('wlvl score: '+str(float(anomaly_score_wlvl)))
+        print('wlvl threshold: '+str(float(anomaly_threshVal0)))
 
         #clustering between normal & abnormal
 
         #Water level sensor
-        
         if float(sensor_wlvl[0]) > threshold_wlvl_lower:
             if float(sensor_wlvl[0]) < threshold_wlvl_higher:
                 if anomaly_score_wlvl >= anomaly_threshVal0:
@@ -216,7 +215,9 @@ def post_process(rawdata):
 
         #append value of anomaly score and sensor status
         nid_library[score_nid] = np.append(nid_library[score_nid], float(anomaly_score_wlvl))
-        nid_library[status_nid] = np.append(nid_library[status_nid], sensor_wlvl_status) 
+        nid_library[status_nid] = np.append(nid_library[status_nid], sensor_wlvl_status)
+
+        print('window_size: ' + str(len(nid_library[sensor_nid])))
 
         #store the data in order to send it back to IoT.own
         changedata = {}
