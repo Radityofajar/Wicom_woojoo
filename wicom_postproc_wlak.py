@@ -197,6 +197,8 @@ def post_process(rawdata):
         nid_library[score_nid] = np.append(nid_library[score_nid], float(anomaly_score_wlak))
         nid_library[status_nid] = np.append(nid_library[status_nid], sensor_wlak_status)
 
+        print('window_size: ' + str(len(nid_library[sensor_nid])))
+
         #store the data in order to send it back to IoT.own
         changedata = {}
         changedata['dtype'] = message['dtype']
