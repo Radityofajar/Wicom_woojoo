@@ -17,12 +17,12 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2, outlier_fraction3):
 
     #model setting
     estimator = 100
-    samples = 500
+    samples = 1000
     randstate = 42
 
     #outlier parameter
     if outlier_fraction1 == 0:
-        outlier_fraction1 = 0.01 # 1% of contamination
+        outlier_fraction1 = 0.01 # 0.1% of contamination
     elif outlier_fraction1 >= outlier_fraction_param:
         outlier_fraction1 = outlier_fraction_param
     else:
@@ -48,27 +48,27 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2, outlier_fraction3):
     model_door = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction3)
 
     #data preprocess
-    nid_library['data'] = nid_library['data'].reshape(-1,1)
-    nid_library_2['data'] = nid_library_2['data'].reshape(-1,1)
-    nid_library_3['data'] = nid_library_3['data'].reshape(-1,1)
+    data_temp = nid_library[sensor_nid].reshape(-1,1)
+    data_hum = nid_library_2[sensor_nid].reshape(-1,1)
+    data_door = nid_library_3[sensor_nid].reshape(-1,1)
 
     #model training
-    model_hum.fit(nid_library['data'])
-    model_temp.fit(nid_library_2['data'])
-    model_door.fit(nid_library_3['data'])
+    model_temp.fit(data_temp)
+    model_hum.fit(data_hum)
+    model_door.fit(data_door)
 
     #filename
     var1 = 'model\model_'
-    var_hum = '_hum.joblib'
     var_temp = '_temp.joblib'
+    var_hum = '_hum.joblib'
     var_door = '_door.joblib'
-    filename_hum_model = var1 + sensor_nid + var_hum
     filename_temp_model = var1 + sensor_nid + var_temp
+    filename_hum_model = var1 + sensor_nid + var_hum
     filename_door_model = var1 + sensor_nid + var_door
 
     #save/overwrite model
-    dump(model_hum, filename_hum_model)
     dump(model_temp, filename_temp_model)
+    dump(model_hum, filename_hum_model)
     dump(model_door, filename_door_model)
 
     print('update the model')
@@ -78,7 +78,7 @@ def receive_data(rawdata): #feel free to change or update this function depends 
     print(raw_data)
     # raw_data --> 'POST /api/v1.0/data HTTP/1.1\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 120\r\nToken: 079da3dd77569523551c9ddd8c8e57c4f4ee71bea5e848d68785b06545d098ac\r\n\r\n{"type": "2","nid": "WS000001FFFF123456", "data": {"dtype":"tdhd", "nid":"WS000001FFFF123456", "val0":27.8,"val1":56.2,"val2":1}}\r\n\r\n'
     test = len(raw_data.split())
-    if raw_data == 'Missing':
+    if raw_data == 'Missing' or test < 11:
         details = 'Data is not complete'
         print(details)
     elif test >= 11:
@@ -118,15 +118,17 @@ def post_process(rawdata):
         #check sensor nid
         sensor_nid = message['nid']
         if sensor_nid not in nid_library.keys(): #check whether nid is new or not
+            score_nid = 'score_' + sensor_nid
+            status_nid = 'status_' + sensor_nid
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library[score_nid] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library[status_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library_2[status_nid] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library_2[score_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_3[sensor_nid] = np.array([[]]) #make a new array for new nid (door)
-            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid (temperature)
-            nid_library_2['anomaly_score'] = np.array([[]]) #make a new array for new nid (humidity)
-            nid_library_3['anomaly_score'] = np.array([[]]) #make a new array for new nid (door)
-            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid (temperature)
-            nid_library_2['anomaly_status'] = np.array([[]]) #make a new array for new nid (humidity)
-            nid_library_3['anomaly_status'] = np.array([[]]) #make a new array for new nid (door)
+            nid_library_3[score_nid] = np.array([[]]) #make a new array for new nid (door)
+            nid_library_3[status_nid] = np.array([[]]) #make a new array for new nid (door)
 
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_temp) #temp
@@ -139,17 +141,17 @@ def post_process(rawdata):
             try: #if spesified model is already built
                 #filename
                 var1 = 'model\model_'
-                var_hum = '_hum.joblib'
                 var_temp = '_temp.joblib'
+                var_hum = '_hum.joblib'
                 var_door = '_door.joblib'
-                filename_hum_model = var1 + sensor_nid + var_hum
                 filename_temp_model = var1 + sensor_nid + var_temp
+                filename_hum_model = var1 + sensor_nid + var_hum
                 filename_door_model = var1 + sensor_nid + var_door
                 #load model
                 model_temp = load(filename_temp_model)
                 model_hum = load(filename_hum_model)
                 model_door = load(filename_door_model)
-            except: #if there is no spesificied model
+            except: #if there is no specified model
                 #filename
                 filename_temp_model = 'model\model_temp1.joblib'
                 filename_hum_model = 'model\model_hum1.joblib'
@@ -178,14 +180,15 @@ def post_process(rawdata):
             #mode 3: retrain the model
 
             #calculate the outlier fraction
-            outlier1 = Counter(nid_library['anomaly_status']) #temp
-            outlier2 = Counter(nid_library_2['anomaly_status']) #hum
-            outlier3 = Counter(nid_library_3['anomaly_status']) #door
-            outlier_fraction1 = outlier1['abnormal'] / len(nid_library['anomaly_status']) #temp
-            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2['anomaly_status']) #hum
-            outlier_fraction3 = outlier3['abnormal'] / len(nid_library_3['anomaly_status']) #door
-
-
+            outlier1 = Counter(nid_library[status_nid]) #temp
+            outlier2 = Counter(nid_library_2[status_nid]) #hum
+            outlier3 = Counter(nid_library_3[status_nid]) #door
+            outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #temp
+            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #hum
+            outlier_fraction3 = outlier3['abnormal'] / len(nid_library_3[status_nid]) #door
+            print('outlier fraction 1: '+outlier_fraction1)
+            print('outlier fraction 2: '+outlier_fraction2)
+            print('outlier fraction 3: '+outlier_fraction3)
             #Multithreading            
             thread = threading.Thread(target=train, args=(sensor_nid, outlier_fraction1, outlier_fraction2, outlier_fraction3))
             if thread.is_alive():
@@ -201,11 +204,11 @@ def post_process(rawdata):
 
             #filename
             var1 = 'model\model_'
-            var_hum = '_hum.joblib'
             var_temp = '_temp.joblib'
+            var_hum = '_hum.joblib'
             var_door = '_door.joblib'
-            filename_hum_model = var1 + sensor_nid + var_hum
             filename_temp_model = var1 + sensor_nid + var_temp
+            filename_hum_model = var1 + sensor_nid + var_hum
             filename_door_model = var1 + sensor_nid + var_door
 
             #load model
@@ -215,36 +218,38 @@ def post_process(rawdata):
             #print('model loaded')
 
             #calculate the anomaly score threshold for temperature
-            anomaly_score_temp_mean = nid_library['anomaly_score'].mean()
-            anomaly_score_temp_std = nid_library['anomaly_score'].std()
+            anomaly_score_temp_mean = nid_library[score_nid].mean()
+            anomaly_score_temp_std = nid_library[score_nid].std()
             anomaly_score_temp_cal = anomaly_score_temp_mean - (anomaly_score_temp_std*anomaly_threshVal0_param)
             
             if anomaly_score_temp_cal <= -0.15:
                 anomaly_threshVal0 = -0.15
-            elif anomaly_score_temp_cal >= 0.02:
-                anomaly_threshVal0 = 0.02
+            elif anomaly_score_temp_cal >= 0.01:
+                anomaly_threshVal0 = 0.01
             else:
                 anomaly_threshVal0 = anomaly_score_temp_cal
 
             #calculate the anomaly score threshold for humidity
-            anomaly_score_hum_mean = nid_library_2['anomaly_score'].mean()
-            anomaly_score_hum_std = nid_library_2['anomaly_score'].std()
+            anomaly_score_hum_mean = nid_library_2[score_nid].mean()
+            anomaly_score_hum_std = nid_library_2[score_nid].std()
             anomaly_score_hum_cal = anomaly_score_hum_mean + (anomaly_score_hum_std*anomaly_threshVal1_param)
             
             if anomaly_score_hum_cal <= -0.15:
                 anomaly_threshVal1 = -0.15
-            elif anomaly_score_hum_cal >= 0.02:
-                anomaly_threshVal1 = 0.02
+            elif anomaly_score_hum_cal >= 0.01:
+                anomaly_threshVal1 = 0.01
             else:
                 anomaly_threshVal1 = anomaly_score_hum_cal
 
             #calculate the anomaly score threshold for door
-            anomaly_score_door_mean = nid_library_3['anomaly_score'].mean()
-            anomaly_score_door_std = nid_library_3['anomaly_score'].std()
+            anomaly_score_door_mean = nid_library_3[score_nid].mean()
+            anomaly_score_door_std = nid_library_3[score_nid].std()
             anomaly_score_door_cal = anomaly_score_door_mean - (anomaly_score_door_std*1.5)
             
             if anomaly_score_door_cal <= -0.15:
                 anomaly_threshVal2 = -0.15
+            elif anomaly_score_door_cal >= 0.1:
+                anomaly_threshVal2 = 0.1
             else:
                 anomaly_threshVal2 = anomaly_score_door_cal
 
@@ -256,17 +261,17 @@ def post_process(rawdata):
 
         else:
             #optimize the array size of sliding window for temperature
-            nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+batch_size):]
-            nid_library['anomaly_score'] = nid_library['anomaly_score'][-(train_number+batch_size):]
-            nid_library['anomaly_status'] = nid_library['anomaly_status'][-(train_number+batch_size):]
+            nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
+            nid_library[score_nid] = nid_library[score_nid][-(train_number+2*batch_size):]
+            nid_library[status_nid] = nid_library[status_nid][-(train_number+2*batch_size):]
             #optimize the array size of sliding window for humidity
-            nid_library_2[sensor_nid] = nid_library_2[sensor_nid][-(train_number+batch_size):]
-            nid_library_2['anomaly_score'] = nid_library_2['anomaly_score'][-(train_number+batch_size):]
-            nid_library_2['anomaly_status'] = nid_library_2['anomaly_status'][-(train_number+batch_size):]
+            nid_library_2[sensor_nid] = nid_library_2[sensor_nid][-(train_number+2*batch_size):]
+            nid_library_2[score_nid] = nid_library_2[score_nid][-(train_number+2*batch_size):]
+            nid_library_2[status_nid] = nid_library_2[status_nid][-(train_number+2*batch_size):]
             #optimize the array size of sliding window for door
-            nid_library_3['data'] = nid_library_3['data'][-(train_number+batch_size):]
-            nid_library_3['anomaly_score'] = nid_library_3['anomaly_score'][-(train_number-batch_size):]
-            nid_library_3['anomaly_status'] = nid_library_3['anomaly_status'][-(train_number+batch_size):]
+            nid_library_3[sensor_nid] = nid_library_3[sensor_nid][-(train_number+2*batch_size):]
+            nid_library_3[score_nid] = nid_library_3[score_nid][-(train_number+2*batch_size):]
+            nid_library_3[status_nid] = nid_library_3[status_nid][-(train_number+2*batch_size):]
             counter = (batch_size+1)
 
         #preprocess the data for anomaly detection
@@ -333,14 +338,14 @@ def post_process(rawdata):
                 sensor_door_status = 'abnormal/closed'
         
         #append value of anomaly score and sensor status
-        nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'],float(anomaly_score_temp))
-        nid_library['anomaly_status'] = np.append(nid_library['anomaly_status'],sensor_temp_status)
+        nid_library[score_nid] = np.append(nid_library[score_nid],float(anomaly_score_temp))
+        nid_library[status_nid] = np.append(nid_library[status_nid],sensor_temp_status)
 
-        nid_library_2['anomaly_score'] = np.append(nid_library_2['anomaly_score'],float(anomaly_score_hum))
-        nid_library_2['anomaly_status'] = np.append(nid_library_2['anomaly_status'],sensor_hum_status)
+        nid_library_2[score_nid] = np.append(nid_library_2[score_nid],float(anomaly_score_hum))
+        nid_library_2[status_nid] = np.append(nid_library_2[status_nid],sensor_hum_status)
 
-        nid_library_3['anomaly_score'] = np.append(nid_library_3['anomaly_score'],float(anomaly_score_door))
-        nid_library_3['anomaly_status'] = np.append(nid_library_3['anomaly_status'],sensor_door_status)
+        nid_library_3[score_nid] = np.append(nid_library_3[score_nid],float(anomaly_score_door))
+        nid_library_3[status_nid] = np.append(nid_library_3[status_nid],sensor_door_status)
 
         #store the data in order to send it back to IoT.own
         changedata = {}
