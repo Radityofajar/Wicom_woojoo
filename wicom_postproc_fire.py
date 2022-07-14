@@ -49,7 +49,7 @@ def train(sensor_nid, outlier_fraction1, outlier_fraction2):
 
     #filename
     var1 = 'model\model_'
-    var_temp = '_temp.joblib'
+    var_temp = '_temp3.joblib'
     var_fire = '_fire.joblib'
     filename_temp_model = var1 + sensor_nid + var_temp
     filename_fire_model = var1 + sensor_nid + var_fire
@@ -178,7 +178,7 @@ def post_process(rawdata):
             #filename
             var1 = 'model\model_'
             var_fire = '_fire.joblib'
-            var_temp = '_temp.joblib'
+            var_temp = '_temp3.joblib'
             filename_fire_model = var1 + sensor_nid + var_fire
             filename_temp_model = var1 + sensor_nid + var_temp
 
