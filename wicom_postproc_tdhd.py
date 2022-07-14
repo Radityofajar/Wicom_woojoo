@@ -297,7 +297,7 @@ def post_process(rawdata):
         #temperature sensor
         if float(sensor_temp[0]) > threshold_temp_lower:
             if float(sensor_temp[0]) < threshold_temp_higher:
-                if anomaly_score_temp > anomaly_threshVal0:
+                if anomaly_score_temp >= anomaly_threshVal0:
                     #normal condition
                     sensor_temp_status = 'normal'
                 else:
@@ -311,7 +311,7 @@ def post_process(rawdata):
         #humidity sensor
         if float(sensor_hum[0]) > threshold_hum_lower:
             if float(sensor_hum[0]) < threshold_hum_higher:
-                if anomaly_score_hum > anomaly_threshVal1:
+                if anomaly_score_hum >= anomaly_threshVal1:
                     #normal condition
                     sensor_hum_status = 'normal'
                 else:
