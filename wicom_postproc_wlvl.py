@@ -91,11 +91,13 @@ def post_process(rawdata):
         sensor_nid = message['nid']
         score_nid = 'score_' + str(sensor_nid)
         status_nid = 'status_' + str(sensor_nid)
-        counter = 'counter' + str(sensor_nid) 
+        counter = 'counter' + str(sensor_nid)
+        anomaly_threshVal0 = 'thresholdVal0' + str(sensor_nid)
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
             nid_library[score_nid] = np.array([[]]) #make a new array for new nid
             nid_library[status_nid] = np.array([[]]) #make a new array for new nid
+            nid_library[anomaly_threshVal0] = 0.0
             nid_library[counter] = 1 #set counter
         
         #input stream data to the window
@@ -122,7 +124,6 @@ def post_process(rawdata):
                 print('Using specified model')
             finally:
                 print(filename_wlvl_model)
-                anomaly_threshVal0 = 0.0
                 nid_library[counter] += 1
 
         elif nid_library[counter] <= batch_size:
@@ -163,13 +164,15 @@ def post_process(rawdata):
             anomaly_score_wlvl_mean = nid_library[score_nid].mean()
             anomaly_score_wlvl_std = nid_library[score_nid].std()
             anomaly_score_wlvl_cal = anomaly_score_wlvl_mean - (anomaly_score_wlvl_std * anomaly_threshVal0_param)
-
+            print('wlvl score_mean: '+str(anomaly_score_wlvl_mean))
+            print('wlvl score_std: '+str(anomaly_score_wlvl_std))
+            print('wlvl score_cal: '+str(anomaly_score_wlvl_cal))
             if anomaly_score_wlvl_cal <= -0.15:
-                anomaly_threshVal0 = -0.15
+                nid_library[anomaly_threshVal0] = -0.15
             elif anomaly_score_wlvl_cal >= 0.0:
-                anomaly_threshVal0 = 0.0
+                nid_library[anomaly_threshVal0] = 0.0
             else:
-                anomaly_threshVal0 = anomaly_score_wlvl_cal
+                nid_library[anomaly_threshVal0] = anomaly_score_wlvl_cal
 
             nid_library[counter] += 1
 
@@ -180,8 +183,8 @@ def post_process(rawdata):
         else:
             #optimize the array size of sliding window
             nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
-            nid_library[score_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
-            nid_library[status_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
+            nid_library[score_nid] = nid_library[score_nid][-(train_number+2*batch_size):]
+            nid_library[status_nid] = nid_library[status_nid][-(train_number+2*batch_size):]
             nid_library[counter] = (batch_size+1)
 
         #preprocess the data for anomaly detection
@@ -192,14 +195,14 @@ def post_process(rawdata):
 
         print('wlvl value: '+str(sensor_wlvl[0]))
         print('wlvl score: '+str(float(anomaly_score_wlvl)))
-        print('wlvl threshold: '+str(float(anomaly_threshVal0)))
+        print('wlvl threshold: '+str(float(nid_library[anomaly_threshVal0])))
 
         #clustering between normal & abnormal
 
         #Water level sensor
         if float(sensor_wlvl[0]) > threshold_wlvl_lower:
             if float(sensor_wlvl[0]) < threshold_wlvl_higher:
-                if anomaly_score_wlvl >= anomaly_threshVal0:
+                if anomaly_score_wlvl >= nid_library[anomaly_threshVal0]:
                     #normal condition
                     sensor_wlvl_status = 'normal'
                 else:
@@ -226,7 +229,7 @@ def post_process(rawdata):
         changedata['val0'] = float(message['val0'])
         changedata['result_v0'] = sensor_wlvl_status
         changedata['anomaly_score'] = float(anomaly_score_wlvl)
-        changedata['anomaly_score_threshold'] = float(anomaly_threshVal0)
+        changedata['anomaly_score_threshold'] = float(nid_library[anomaly_threshVal0])
         rawdata['data'] = changedata
         print(rawdata)
 
