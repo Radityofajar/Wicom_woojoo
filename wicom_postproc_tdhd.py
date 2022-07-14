@@ -226,8 +226,8 @@ def post_process(rawdata):
             
             if anomaly_score_temp_cal <= -0.15:
                 anomaly_threshVal0 = -0.15
-            elif anomaly_score_temp_cal >= 0.01:
-                anomaly_threshVal0 = 0.01
+            elif anomaly_score_temp_cal >= 0.0:
+                anomaly_threshVal0 = 0.0
             else:
                 anomaly_threshVal0 = anomaly_score_temp_cal
 
@@ -238,8 +238,8 @@ def post_process(rawdata):
             
             if anomaly_score_hum_cal <= -0.15:
                 anomaly_threshVal1 = -0.15
-            elif anomaly_score_hum_cal >= 0.01:
-                anomaly_threshVal1 = 0.01
+            elif anomaly_score_hum_cal >= 0.0:
+                anomaly_threshVal1 = 0.0
             else:
                 anomaly_threshVal1 = anomaly_score_hum_cal
 
@@ -287,11 +287,11 @@ def post_process(rawdata):
         anomaly_score_door = model_door.decision_function(sensor_door_reshape)
 
         print('temp value: '+str(sensor_temp[0]))
-        print('temp score: '+str(anomaly_score_temp))
-        print('temp threshold: '+str(anomaly_threshVal0))
-        print('hum score: '+str(anomaly_score_hum))
+        print('temp score: '+str(float(anomaly_score_temp)))
+        print('temp threshold: '+str(float(anomaly_threshVal0)))
         print('hum value: '+str(sensor_hum[0]))
-        print('hum threshold: '+str(anomaly_threshVal1))
+        print('hum score: '+str(float(anomaly_score_hum)))
+        print('hum threshold: '+str(float(anomaly_threshVal1)))
 
         #clustering between normal & abnormal
         #temperature sensor
@@ -350,6 +350,8 @@ def post_process(rawdata):
 
         nid_library_3[score_nid] = np.append(nid_library_3[score_nid],float(anomaly_score_door))
         nid_library_3[status_nid] = np.append(nid_library_3[status_nid],sensor_door_status)
+
+        print('window_size: ' + str(len(nid_library[sensor_nid])))
 
         #store the data in order to send it back to IoT.own
         changedata = {}
