@@ -100,7 +100,6 @@ def post_process(rawdata):
     global threshold_temp_lower, threshold_temp_higher
     global door_thresh
     global batch_size, train_number
-    global anomaly_threshVal0, anomaly_threshVal1
     global anomaly_threshVal0_param, anomaly_threshVal1_param
     global nid_library, nid_library_2, nid_library_3
 
@@ -118,16 +117,24 @@ def post_process(rawdata):
         score_nid = 'score_' + str(sensor_nid)
         status_nid = 'status_' + str(sensor_nid)
         counter = 'counter' + str(sensor_nid)
+        anomaly_threshVal0 = 'thresholdVal0' + str(sensor_nid)
+        anomaly_threshVal1 = 'thresholdVal1' + str(sensor_nid)
+        anomaly_threshVal2 = 'thresholdVal2' + str(sensor_nid)
         if sensor_nid not in nid_library.keys(): #check whether nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library[score_nid] = np.array([[]]) #make a new array for new nid (temperature)
             nid_library[status_nid] = np.array([[]]) #make a new array for new nid (temperature)
+            nid_library[anomaly_threshVal0] = 0.0
+
             nid_library_2[sensor_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_2[status_nid] = np.array([[]]) #make a new array for new nid (humidity)
             nid_library_2[score_nid] = np.array([[]]) #make a new array for new nid (humidity)
+            nid_library_2[anomaly_threshVal1] = 0.0
+
             nid_library_3[sensor_nid] = np.array([[]]) #make a new array for new nid (door)
             nid_library_3[score_nid] = np.array([[]]) #make a new array for new nid (door)
             nid_library_3[status_nid] = np.array([[]]) #make a new array for new nid (door)
+            nid_library_3[anomaly_threshVal2] = 0.0
             nid_library[counter] = 1 #set counter
 
         #input stream data to the window
@@ -169,9 +176,6 @@ def post_process(rawdata):
                 print(filename_temp_model)
                 print(filename_hum_model)
                 print(filename_door_model)
-                anomaly_threshVal0 = 0.0
-                anomaly_threshVal1 = 0.0
-                anomaly_threshVal2 = 0.0
                 nid_library[counter] += 1
 
         elif nid_library[counter] <= batch_size:
@@ -223,25 +227,29 @@ def post_process(rawdata):
             anomaly_score_temp_mean = nid_library[score_nid].mean()
             anomaly_score_temp_std = nid_library[score_nid].std()
             anomaly_score_temp_cal = anomaly_score_temp_mean - (anomaly_score_temp_std*anomaly_threshVal0_param)
-            
+            print('temp score_mean: '+str(anomaly_score_temp_mean))
+            print('temp score_std: '+str(anomaly_score_temp_std))
+            print('temp score_cal: '+str(anomaly_score_temp_cal))
             if anomaly_score_temp_cal <= -0.15:
-                anomaly_threshVal0 = -0.15
+                nid_library[anomaly_threshVal0] = -0.15
             elif anomaly_score_temp_cal >= 0.0:
-                anomaly_threshVal0 = 0.0
+                nid_library[anomaly_threshVal0] = 0.0
             else:
-                anomaly_threshVal0 = anomaly_score_temp_cal
+                nid_library[anomaly_threshVal0] = anomaly_score_temp_cal
 
             #calculate the anomaly score threshold for humidity
             anomaly_score_hum_mean = nid_library_2[score_nid].mean()
             anomaly_score_hum_std = nid_library_2[score_nid].std()
-            anomaly_score_hum_cal = anomaly_score_hum_mean + (anomaly_score_hum_std*anomaly_threshVal1_param)
-            
+            anomaly_score_hum_cal = anomaly_score_hum_mean - (anomaly_score_hum_std*anomaly_threshVal1_param)
+            print('temp score_mean: '+str(anomaly_score_hum_mean))
+            print('temp score_std: '+str(anomaly_score_hum_std))
+            print('temp score_cal: '+str(anomaly_score_hum_cal))
             if anomaly_score_hum_cal <= -0.15:
-                anomaly_threshVal1 = -0.15
+                nid_library_2[anomaly_threshVal1] = -0.15
             elif anomaly_score_hum_cal >= 0.0:
-                anomaly_threshVal1 = 0.0
+                nid_library_2[anomaly_threshVal1] = 0.0
             else:
-                anomaly_threshVal1 = anomaly_score_hum_cal
+                nid_library_2[anomaly_threshVal1] = anomaly_score_hum_cal
 
             #calculate the anomaly score threshold for door
             anomaly_score_door_mean = nid_library_3[score_nid].mean()
@@ -288,16 +296,16 @@ def post_process(rawdata):
 
         print('temp value: '+str(sensor_temp[0]))
         print('temp score: '+str(float(anomaly_score_temp)))
-        print('temp threshold: '+str(float(anomaly_threshVal0)))
+        print('temp threshold: '+str(float(nid_library[anomaly_threshVal0])))
         print('hum value: '+str(sensor_hum[0]))
         print('hum score: '+str(float(anomaly_score_hum)))
-        print('hum threshold: '+str(float(anomaly_threshVal1)))
+        print('hum threshold: '+str(float(nid_library_2[anomaly_threshVal1])))
 
         #clustering between normal & abnormal
         #temperature sensor
         if float(sensor_temp[0]) > threshold_temp_lower:
             if float(sensor_temp[0]) < threshold_temp_higher:
-                if anomaly_score_temp >= anomaly_threshVal0:
+                if anomaly_score_temp >= nid_library[anomaly_threshVal0]:
                     #normal condition
                     sensor_temp_status = 'normal'
                 else:
@@ -311,7 +319,7 @@ def post_process(rawdata):
         #humidity sensor
         if float(sensor_hum[0]) > threshold_hum_lower:
             if float(sensor_hum[0]) < threshold_hum_higher:
-                if anomaly_score_hum >= anomaly_threshVal1:
+                if anomaly_score_hum >= nid_library_2[anomaly_threshVal1]:
                     #normal condition
                     sensor_hum_status = 'normal'
                 else:
@@ -366,8 +374,8 @@ def post_process(rawdata):
         changedata['anomaly_score_temp'] = float(anomaly_score_temp)
         changedata['anomaly_score_hum'] = float(anomaly_score_hum)
         changedata['anomaly_score_door'] = float(anomaly_score_door)
-        changedata['anomaly_score_threshold_temp'] = float(anomaly_threshVal0)
-        changedata['anomaly_score_threshold_hum'] = float(anomaly_threshVal1)
+        changedata['anomaly_score_threshold_temp'] = float(nid_library[anomaly_threshVal0])
+        changedata['anomaly_score_threshold_hum'] = float(nid_library_2[anomaly_threshVal1])
         rawdata['data'] = changedata
         print(rawdata)
         return rawdata
