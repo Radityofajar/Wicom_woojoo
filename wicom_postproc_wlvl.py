@@ -74,7 +74,7 @@ def post_process(rawdata):
     global model_waterlevel
     global threshold_wlvl_lower, threshold_wlvl_higher
     global batch_size, train_number
-    global anomaly_threshVal0, anomaly_threshVal0_param
+    global anomaly_threshVal0_param
     global nid_library
     global score_nid, status_nid
 
