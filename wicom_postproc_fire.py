@@ -124,7 +124,7 @@ def post_process(rawdata):
                 #filename
                 var1 = 'model\model_'
                 var_fire = '_fire.joblib'
-                var_temp = '_temp.joblib'
+                var_temp = '_temp3.joblib'
                 filename_fire_model = var1 + sensor_nid + var_fire
                 filename_temp_model = var1 + sensor_nid + var_temp
                 #load model
@@ -160,8 +160,8 @@ def post_process(rawdata):
             outlier2 = Counter(nid_library_2[status_nid]) #temp
             outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #fire
             outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #temp
-            print(outlier_fraction1)
-            print(outlier_fraction2)
+            print('outlier fraction 1: '+outlier_fraction1)
+            print('outlier fraction 2: '+outlier_fraction2)
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction1, outlier_fraction2,))
             if thread.is_alive():
