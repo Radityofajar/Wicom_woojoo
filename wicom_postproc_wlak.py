@@ -9,8 +9,6 @@ import sys
 import warnings
 warnings.filterwarnings('ignore')
 
-counter = 1
-
 def train(sensor_nid, outlier_fraction):
     global nid_library
     global outlier_fraction_param
@@ -84,18 +82,22 @@ def post_process(rawdata):
 
         #check sensor nid
         sensor_nid = message['nid']
+        score_nid = 'score_' + str(sensor_nid)
+        status_nid = 'status_' + str(sensor_nid)
+        counter = 'counter' + str(sensor_nid)
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
-            score_nid = 'score_' + sensor_nid
-            status_nid = 'status_' + sensor_nid
             nid_library[score_nid] = np.array([[]]) #make a new array for new nid
             nid_library[status_nid] = np.array([[]]) #make a new array for new nid
+            nid_library[counter] = 1 #set counter
             
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_wlak)
-        print(nid_library[sensor_nid])
 
-        if counter == 1:
+        #print counter
+        print('counter: ' + str(nid_library[counter]))
+
+        if nid_library[counter] == 1:
             #mode1: using initial mode
             try: #if spesified model is already built
                 #filename
@@ -115,19 +117,19 @@ def post_process(rawdata):
             finally:
                 print(filename_wlak_model)
                 anomaly_threshVal0 = 0.0
-                counter +=1
+                nid_library[counter] +=1
 
-        elif counter <= batch_size:
+        elif nid_library[counter] <= batch_size:
             #mode2: Keep using initial model until the data stored in array
-            counter += 1
+            nid_library[counter] += 1
 
-        elif counter == (batch_size + 1):
+        elif nid_library[counter] == (batch_size + 1):
             #mode 3: retrain the model
 
             #calculate the outlier fraction
             outlier = Counter(nid_library[status_nid])
             outlier_fraction = outlier['abnormal'] / len(nid_library[status_nid])
-            print('outlier fraction: '+outlier_fraction)
+            print('outlier fraction: '+str(outlier_fraction))
             
             #Multithreading            
             thread = threading.Thread(target=train, args=(sensor_nid, outlier_fraction))
@@ -136,10 +138,10 @@ def post_process(rawdata):
             else:
                 print('thread is starting')
                 thread.start()
-            counter += 1
+            nid_library[counter] += 1
             thread.join()
 
-        elif counter == (batch_size+2):
+        elif nid_library[counter] == (batch_size+2):
             #model 4: load retrain model
 
             #filename
@@ -161,16 +163,19 @@ def post_process(rawdata):
                 anomaly_threshVal0 = 0.1
             else:
                 anomaly_threshVal0 = anomaly_score_wlak_cal
-        
-        elif counter <= (batch_size + batch_size):
+            
+            nid_library[counter] += 1
+
+        elif nid_library[counter] <= (batch_size + batch_size):
             #mode 5: sliding window method
-            counter += 1
+            nid_library[counter] += 1
 
         else:
             #optimize the array size of sliding window
             nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
             nid_library[score_nid] = nid_library[score_nid][-(train_number+2*batch_size):]
             nid_library[status_nid] = nid_library[status_nid][-(train_number+2*batch_size):]
+            nid_library[counter] = (batch_size+1)
 
         #preprocess the data for anomaly detection
         sensor_wlak_reshape = sensor_wlak.reshape(1,-1)
