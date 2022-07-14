@@ -201,7 +201,7 @@ def post_process(rawdata):
             nid_library[counter] += 1
             thread.join()
         
-        elif counter == (batch_size+2):
+        elif nid_library[counter] == (batch_size+2):
             #model 4: load retrain model
 
             #filename
@@ -257,7 +257,7 @@ def post_process(rawdata):
 
             nid_library[counter] += 1
 
-        elif counter <= (batch_size + batch_size):
+        elif nid_library[counter] <= (batch_size + batch_size):
             #mode 5: sliding window method
             nid_library[counter] += 1
 
