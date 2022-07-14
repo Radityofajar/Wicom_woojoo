@@ -17,12 +17,12 @@ def train(sensor_nid, outlier_fraction):
 
     #model setting
     estimator = 100
-    samples = 500
+    samples = 1000
     randstate = 42
 
     #outlier parameter
     if outlier_fraction == 0:
-        outlier_fraction = 0.001 # 1% of contamination
+        outlier_fraction = 0.001 # 0.1% of contamination
     elif outlier_fraction >= outlier_fraction_param:
         outlier_fraction = outlier_fraction_param
     else:
@@ -32,10 +32,10 @@ def train(sensor_nid, outlier_fraction):
     model_waterlevel = IsolationForest(n_estimators=estimator, max_samples=samples, random_state=randstate, contamination=outlier_fraction)
 
     #data preprocess
-    nid_library[sensor_nid] = nid_library[sensor_nid].reshape(-1,1)
+    data_wlvl = nid_library[sensor_nid].reshape(-1,1)
 
     #model training
-    model_waterlevel.fit(nid_library[sensor_nid])
+    model_waterlevel.fit(data_wlvl)
 
     #filename
     var1 = 'model\model_'
@@ -92,8 +92,10 @@ def post_process(rawdata):
         sensor_nid = message['nid']
         if sensor_nid not in nid_library.keys(): #check wheteher nid is new or not
             nid_library[sensor_nid] = np.array([[]]) #make a new array for new nid
-            nid_library['anomaly_score'] = np.array([[]]) #make a new array for new nid
-            nid_library['anomaly_status'] = np.array([[]]) #make a new array for new nid
+            score_nid = 'score_' + sensor_nid
+            status_nid = 'status_' + sensor_nid 
+            nid_library[score_nid] = np.array([[]]) #make a new array for new nid
+            nid_library[status_nid] = np.array([[]]) #make a new array for new nid
         
         #input stream data to the window
         nid_library[sensor_nid] = np.append(nid_library[sensor_nid], sensor_wlvl)
@@ -108,7 +110,7 @@ def post_process(rawdata):
                 filename_wlvl_model = var1 + sensor_nid + var_wlvl
                 model_waterlevel = load(filename_wlvl_model)
 
-            except: #if there is no spesificied model
+            except: #if there is no specified model
                 #filename
                 filename_wlvl_model = 'model\model_waterlevel.joblib'
                 model_waterlevel = load(filename_wlvl_model) #load model
@@ -121,15 +123,16 @@ def post_process(rawdata):
                 counter += 1
 
         elif counter <= batch_size:
-            #mode2: Keep using initial model until the data stored in array
+            #mode2: Keep using initial model until the data stored in array is more than batch size
             counter += 1
 
         elif counter == (batch_size + 1):
             #mode 3: retrain the model
 
             #calculate the outlier_fraction
-            outlier = Counter(nid_library['anomaly_status'])#wlvl
-            outlier_fraction = outlier['abnormal'] / len(nid_library['anomaly_status'])
+            outlier = Counter(nid_library[status_nid])#wlvl
+            outlier_fraction = outlier['abnormal'] / len(nid_library[status_nid])
+            print('outlier fraction: '+outlier_fraction)
 
             #multithreading
             thread = threading.Thread(target=train, args=(sensor_nid,outlier_fraction))
@@ -154,8 +157,8 @@ def post_process(rawdata):
             #print('model loaded')
 
             #calculate the anomaly score threshold for water level
-            anomaly_score_wlvl_mean = nid_library['anomaly_score'].mean()
-            anomaly_score_wlvl_std = nid_library['anomaly_score'].std()
+            anomaly_score_wlvl_mean = nid_library[score_nid].mean()
+            anomaly_score_wlvl_std = nid_library[score_nid].std()
             anomaly_score_wlvl_cal = anomaly_score_wlvl_mean - (anomaly_score_wlvl_std * anomaly_threshVal0_param)
 
             if anomaly_score_wlvl_cal <= -0.15:
@@ -173,9 +176,9 @@ def post_process(rawdata):
 
         else:
             #optimize the array size of sliding window
-            nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+batch_size):]
-            nid_library['anomaly_score'] = nid_library[sensor_nid][-(train_number+batch_size):]
-            nid_library['anomaly_status'] = nid_library[sensor_nid][-(train_number+batch_size):]
+            nid_library[sensor_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
+            nid_library[score_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
+            nid_library[status_nid] = nid_library[sensor_nid][-(train_number+2*batch_size):]
             counter = (batch_size+1)
 
         #preprocess the data for anomaly detection
@@ -209,8 +212,8 @@ def post_process(rawdata):
         
 
         #append value of anomaly score and sensor status
-        nid_library['anomaly_score'] = np.append(nid_library['anomaly_score'], float(anomaly_score_wlvl))
-        nid_library['anomaly_status'] = np.append(nid_library['anomaly_status'], sensor_wlvl_status) 
+        nid_library[score_nid] = np.append(nid_library[score_nid], float(anomaly_score_wlvl))
+        nid_library[status_nid] = np.append(nid_library[status_nid], sensor_wlvl_status) 
 
         #store the data in order to send it back to IoT.own
         changedata = {}
