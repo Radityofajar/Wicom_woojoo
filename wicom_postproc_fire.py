@@ -187,9 +187,9 @@ def post_process(rawdata):
             anomaly_score_fire_mean = nid_library[score_nid].mean()
             anomaly_score_fire_std = nid_library[score_nid].std()
             anomaly_score_fire_cal = anomaly_score_fire_mean - (anomaly_score_fire_std*1.5)
-            print('fire score_mean: '+str(anomaly_score_temp_mean))
-            print('fire score_std: '+str(anomaly_score_temp_std))
-            print('fire score_cal: '+str(anomaly_score_temp_cal))
+            print('fire score_mean: '+str(anomaly_score_fire_mean))
+            print('fire score_std: '+str(anomaly_score_fire_std))
+            print('fire score_cal: '+str(anomaly_score_fire_cal))
             if anomaly_score_fire_cal <= -0.15:
                 nid_library[anomaly_threshVal0] = -0.15
             elif anomaly_score_fire_cal >= 0.01:
@@ -269,11 +269,11 @@ def post_process(rawdata):
             sensor_temp_status = 'abnormal/too low'
 
         #append value of anomaly score and sensor status
-        nid_library[score_nid] = np.append(nid_library[score_nid],float(anomaly_score_temp))
-        nid_library[status_nid] = np.append(nid_library[status_nid],sensor_temp_status)
+        nid_library[score_nid] = np.append(nid_library[score_nid],float(anomaly_score_fire))
+        nid_library[status_nid] = np.append(nid_library[status_nid],sensor_fire_status)
 
-        nid_library_2[score_nid] = np.append(nid_library_2[score_nid],float(anomaly_score_fire))
-        nid_library_2[status_nid] = np.append(nid_library_2[status_nid],sensor_fire_status)
+        nid_library_2[score_nid] = np.append(nid_library_2[score_nid],float(anomaly_score_temp))
+        nid_library_2[status_nid] = np.append(nid_library_2[status_nid],sensor_temp_status)
 
         print('window_size: ' + str(len(nid_library[sensor_nid])))
         
