@@ -1,5 +1,6 @@
 from pyiotown_wicom import postprocess
 import json
+import python_http_parser
 import numpy as np
 from joblib import load, dump
 from sklearn.ensemble import IsolationForest
@@ -50,23 +51,11 @@ def receive_data(rawdata):
     #take the data
     print(raw_data)
     # raw_data --> 'POST /api/v1.0/data HTTP/1.1\r\nContent-Type: application/json\r\nAccept: application/json\r\nContent-Length: 120\r\nToken: 079da3dd77569523551c9ddd8c8e57c4f4ee71bea5e848d68785b06545d098ac\r\n\r\n{"type": "2","nid": "WS000001FFFF123456", "data": {"dtype":"wlvl", "nid":"WS000001FFFF123456", "val0":727}}\r\n\r\n'
-    test = len(raw_data.split())
-    if raw_data == 'Missing':
-        details = 'Data is not complete'
-        print(details)
-    elif test >= 11:
-        #take only useful information
-        msg = raw_data.split()
-        datasensor = str(msg[11:])
-        #datasensor --> ['{"type":', '"2","nid":', '"WS000001FFFF123456",', '"data":', '{"dtype":"wlvl",', '"nid":"WS000001FFFF123456",', '"val0":719}}']
-        datasensor = datasensor.replace(']', '')
-        datasensor = datasensor.replace('[', '')
-        datasensor = datasensor.replace("', '", '')
-        datasensor = datasensor.replace("'", '')
-        pythonObj = json.loads(json.loads(json.dumps(datasensor)))
-        #change to json format
-        sensor = pythonObj['data']
-        #sensor --> {"dtype":"wlvl","nid":"WS000001FFFF123456","val0":25.6,"val1":57.8}
+    http = python_http_parser.parse(raw_data)
+    body = http.get('body')
+    body_json = json.loads(body)
+    sensor = body_json['data']
+    #sensor --> {"dtype":"fire","nid":"WS000001FFFF123456","val0":0,"val1":27.8}
     return sensor
 
 def post_process(rawdata):
@@ -74,7 +63,7 @@ def post_process(rawdata):
     global model_waterlevel
     global threshold_wlvl_lower, threshold_wlvl_higher
     global batch_size, train_number
-    global anomaly_threshVal0_param
+    global anomaly_threshVal0, anomaly_threshVal0_param
     global nid_library
     global score_nid, status_nid
 
