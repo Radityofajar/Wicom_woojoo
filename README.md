@@ -47,7 +47,7 @@ Data forms related to the Qubics IoT sensor module. We receive data from the Qub
 ![data_input_format](/docs/data_input_tdhd.JPG)
 *data_acquisition.py* is a data acquisition program to collect data from the Qubics IoT sensor module and post it to the IoT.own server.
 
-If the data input format is different, please configure the **receive_data function (def receive_data(rawdata))** inside the post-process program. The expected output of this function is : 
+The expected output of this function is : 
 
 {"dtype":"wlvl", "nid":"WS000001FFFF123456","val0":719} or 
 
