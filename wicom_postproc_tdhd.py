@@ -179,9 +179,9 @@ def post_process(rawdata):
             outlier1 = Counter(nid_library[status_nid]) #temp
             outlier2 = Counter(nid_library_2[status_nid]) #hum
             outlier3 = Counter(nid_library_3[status_nid]) #door
-            outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #temp
-            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #hum
-            outlier_fraction3 = outlier3['abnormal'] / len(nid_library_3[status_nid]) #door
+            outlier_fraction1 = (len(nid_library[status_nid]) - outlier1['normal']) / len(nid_library[status_nid]) #temp
+            outlier_fraction2 = (len(nid_library_2[status_nid]) - outlier2['normal']) / len(nid_library_2[status_nid]) #hum
+            outlier_fraction3 = (len(nid_library_3[status_nid]) - outlier3['normal']) / len(nid_library_3[status_nid]) #door
             print('outlier fraction 1: '+str(outlier_fraction1))
             print('outlier fraction 2: '+str(outlier_fraction2))
             print('outlier fraction 3: '+str(outlier_fraction3))
