@@ -124,7 +124,7 @@ def post_process(rawdata):
 
             #calculate the outlier_fraction
             outlier = Counter(nid_library[status_nid])#wlvl
-            outlier_fraction = outlier['abnormal'] / len(nid_library[status_nid])
+            outlier_fraction = (len(nid_library[status_nid]) - outlier['normal']) / len(nid_library[status_nid])
             print('outlier fraction: '+str(outlier_fraction))
 
             #multithreading
