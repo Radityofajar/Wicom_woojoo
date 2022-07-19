@@ -118,7 +118,7 @@ def post_process(rawdata):
 
             #calculate the outlier fraction
             outlier = Counter(nid_library[status_nid])
-            outlier_fraction = outlier['abnormal'] / len(nid_library[status_nid])
+            outlier_fraction = (len(nid_library[status_nid]) - outlier['normal']) / len(nid_library[status_nid])
             print('outlier fraction: '+str(outlier_fraction))
             
             #Multithreading            
@@ -180,7 +180,7 @@ def post_process(rawdata):
 
         if float(sensor_wlak) == 0:
             #normal condition
-            sensor_wlak_status = 'normal/no_leak'
+            sensor_wlak_status = 'normal'
         else:
             #abnormal condition
             sensor_wlak_status = 'abnormal/leak'
