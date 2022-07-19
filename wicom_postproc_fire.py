@@ -154,8 +154,8 @@ def post_process(rawdata):
             #calculate the outlier fraction
             outlier1 = Counter(nid_library[status_nid]) #fire
             outlier2 = Counter(nid_library_2[status_nid]) #temp
-            outlier_fraction1 = outlier1['abnormal'] / len(nid_library[status_nid]) #fire
-            outlier_fraction2 = outlier2['abnormal'] / len(nid_library_2[status_nid]) #temp
+            outlier_fraction1 = (len(nid_library[status_nid])-outlier1['normal']) / len(nid_library[status_nid]) #fire
+            outlier_fraction2 = (len(nid_library_2[status_nid])-outlier2['normal']) / len(nid_library_2[status_nid]) #temp
             print('outlier fraction 1: '+str(outlier_fraction1))
             print('outlier fraction 2: '+str(outlier_fraction2))
             #multithreading
